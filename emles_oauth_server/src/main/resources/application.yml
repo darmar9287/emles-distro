@@ -1,0 +1,21 @@
+spring:
+    datasource:
+        hikari:
+            connection-test-query: SELECT 1 FROM DUAL
+            minimum-idle: 1
+            maximum-pool-size: 5
+        jdbc-url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}
+        username: ${PGUSER}
+        password: ${PGPASSWORD}
+        initialization-mode: always
+    jpa:
+      hibernate:
+        ddl-auto: none
+      properties:
+        hibernate:
+          temp:
+            use_jdbc_metadata_defaults: false
+
+# --- server
+server:
+  port: 8081

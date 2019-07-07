@@ -1,0 +1,32 @@
+version: '3'
+services:
+  postgres:
+    image: 'postgres:latest'
+    volumes:
+      - ./postgres_scripts/db_creation.sql:/docker-entrypoint-initdb.d/1-init.sql
+  auth_server:
+    build: ./emles_oauth_server
+    volumes:
+      - ./emles_oauth_server:/app
+    environment:
+      - PGUSER=postgres
+      - PGHOST=postgres
+      - PGDATABASE=emles_oauth2
+      - PG_TEST_DATABASE=emles_oauth2_test
+      - PGPASSWORD=postgres_password
+      - PGPORT=5432
+    ports:
+      - '8000:8081'
+  distribution_res_server:
+    build: ./emles_distribution_resource_server
+    volumes:
+      - ./emles_distribution_resource_server:/app
+    environment:
+      - PGUSER=postgres
+      - PGHOST=postgres
+      - PGDATABASE=emles_oauth2
+      - PG_TEST_DATABASE=emles_oauth2_test
+      - PGPASSWORD=postgres_password
+      - PGPORT=5432
+    ports:
+      - '8001:8083'
