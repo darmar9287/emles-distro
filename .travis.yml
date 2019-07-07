@@ -1,0 +1,10 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t darmar/emles-oauth -f ./emles_oauth_server/Dockerfile.dev ./emles_oauth_server
+  - docker build -t darmar/emles-res-server -f ./emles_distribution_resource_server/Dockerfile.dev ./emles_distribution_resource_server
+script:
+  - docker run darmar/emles-oauth mvn test
+  - docker run darmar/emles-res-server mvn test
