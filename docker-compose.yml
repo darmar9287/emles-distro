@@ -17,6 +17,8 @@ services:
       - PGPORT=5432
     ports:
       - '8000:8081'
+    depends_on:
+      - postgres
   distribution_res_server:
     build: ./emles_distribution_resource_server
     volumes:
@@ -30,3 +32,6 @@ services:
       - PGPORT=5432
     ports:
       - '8001:8083'
+    depends_on:
+      - postgres
+      - auth_server
