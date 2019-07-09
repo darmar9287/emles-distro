@@ -9,7 +9,6 @@ before_script: pip install docker-compose
 
 script:
   - docker-compose run auth_server sh -c "mvn clean verify"
-  - docker-compose run auth_server
   - docker-compose run distribution_res_server sh -c "mvn clean verify"
 
 after_script: docker-compose stop auth_server
