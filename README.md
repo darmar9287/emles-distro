@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/darmar9287/emles-distro.svg?branch=master)](https://travis-ci.org/darmar9287/emles-distro)
+
 This project has been made to make distribution of emles sauces easier.
 
 ### Running the app locally
