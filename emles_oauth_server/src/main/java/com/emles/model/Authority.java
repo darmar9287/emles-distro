@@ -38,7 +38,7 @@ public final class Authority implements GrantedAuthority, Serializable {
      * Setter for id field.
      * @param authorityId - id of authority object
      */
-    public void setId(final Long authorityId) {
+    public void setId(Long authorityId) {
         this.id = authorityId;
     }
 
@@ -55,7 +55,7 @@ public final class Authority implements GrantedAuthority, Serializable {
      * Setter for authority name.
      * @param auth name
      */
-    public void setAuthority(final String auth) {
+    public void setAuthority(String auth) {
         this.authority = auth;
     }
 }

@@ -23,7 +23,7 @@ public class JdbcUserDetails implements UserDetailsService {
     private CredentialRepository credentialRepository;
 
     @Override
-    public final UserDetails loadUserByUsername(final String username)
+    public final UserDetails loadUserByUsername(String username)
         throws UsernameNotFoundException {
         Credentials credentials = credentialRepository.findByName(username);
 

@@ -74,20 +74,20 @@ public class AuthorizationServerConfiguration
     }
 
     @Override
-    public final void configure(final ClientDetailsServiceConfigurer clients)
+    public void configure(ClientDetailsServiceConfigurer clients)
         throws Exception {
         clients.withClientDetails(jdbcClientDetailsService());
     }
 
     @Override
     public void configure(
-        final AuthorizationServerSecurityConfigurer oauthServer)
+        AuthorizationServerSecurityConfigurer oauthServer)
         throws Exception {
     }
 
     @Override
     public final void configure(
-        final AuthorizationServerEndpointsConfigurer endpoints)
+        AuthorizationServerEndpointsConfigurer endpoints)
             throws Exception {
         endpoints
             .approvalStore(approvalStore())

@@ -11,17 +11,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public final class Utils {
 
     /**
-     * Private constructor for Utils class.
-     */
-    private Utils() {
-    }
-
-    /**
      * Method used to encode user password.
      * @param password - password to be encoded.
      * @return encoded password hash.
      */
-    public static String passwordEncoder(final String password) {
+    public static String passwordEncoder(String password) {
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String encodedPassword = passwordEncoder.encode(password);

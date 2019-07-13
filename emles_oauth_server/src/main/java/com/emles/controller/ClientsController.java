@@ -43,7 +43,7 @@ public class ClientsController {
      * @param binder - web data binder
      */
     @InitBinder
-    public void webBinder(final WebDataBinder binder) {
+    public void webBinder(WebDataBinder binder) {
         binder.registerCustomEditor(Collection.class,
                 new SplitCollectionEditor(Set.class, ","));
         binder.registerCustomEditor(GrantedAuthority.class,
@@ -58,10 +58,7 @@ public class ClientsController {
      */
     @RequestMapping(value = "/form", method = RequestMethod.GET)
     @PreAuthorize("hasRole('ROLE_OAUTH_ADMIN')")
-    public String showEditForm(
-            @RequestParam(value = "client", required = false)
-            final String clientId,
-            final Model model) {
+    public String showEditForm(@RequestParam(value = "client", required = false) String clientId, Model model) {
 
         ClientDetails clientDetails;
         if (clientId != null) {
@@ -84,11 +81,8 @@ public class ClientsController {
      */
     @RequestMapping(value = "/edit", method = RequestMethod.POST)
     @PreAuthorize("hasRole('ROLE_OAUTH_ADMIN')")
-    public String editClient(
-            @ModelAttribute
-            final BaseClientDetails clientDetails,
-            @RequestParam(value = "newClient", required = false)
-            final String newClient) {
+    public String editClient(@ModelAttribute BaseClientDetails clientDetails,
+            @RequestParam(value = "newClient", required = false) String newClient) {
         if (newClient == null) {
             clientsDetailsService.updateClientDetails(clientDetails);
         } else {
@@ -113,8 +107,8 @@ public class ClientsController {
     @RequestMapping(value = "{client.clientId}/delete",
             method = RequestMethod.POST)
     public String deleteClient(
-        @ModelAttribute final BaseClientDetails clientDetails,
-        @PathVariable("client.clientId") final String id) {
+        @ModelAttribute BaseClientDetails clientDetails,
+        @PathVariable("client.clientId") String id) {
 
         clientsDetailsService.removeClientDetails(
             clientsDetailsService.loadClientByClientId(id).toString());

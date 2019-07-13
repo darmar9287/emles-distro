@@ -57,8 +57,7 @@ public class LoginController {
      * @return returns view with attribues passed to view.
      */
     @RequestMapping("/")
-    public ModelAndView root(final Map<String, Object> model,
-      final Principal principal) {
+    public ModelAndView root(Map<String, Object> model, Principal principal) {
 
         List<Approval> approvals = clientDetailsService.listClientDetails()
                 .stream()
@@ -79,7 +78,7 @@ public class LoginController {
      * @return name of template file for revocation of token.
      */
     @RequestMapping(value = "/approval/revoke", method = RequestMethod.POST)
-    public String revokeApproval(@ModelAttribute final Approval approval) {
+    public String revokeApproval(@ModelAttribute Approval approval) {
 
         approvalStore.revokeApprovals(asList(approval));
         tokenStore.findTokensByClientIdAndUserName(approval.getClientId(),
@@ -104,8 +103,8 @@ public class LoginController {
      * @return name of template file for logout page.
      */
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
-    public String logoutPage(final HttpServletRequest request,
-        final HttpServletResponse response) {
+    public String logoutPage(HttpServletRequest request,
+        HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext()
                 .getAuthentication();
         if (auth != null) {

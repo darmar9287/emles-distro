@@ -74,7 +74,7 @@ public class Credentials implements Serializable {
      * Setter for credential id.
      * @param credId - id of credential
      */
-    public void setId(final Long credId) {
+    public void setId(Long credId) {
         this.id = credId;
     }
 
@@ -90,7 +90,7 @@ public class Credentials implements Serializable {
      * Setter for version field.
      * @param v - version of serialized object.
      */
-    public void setVersion(final Integer v) {
+    public void setVersion(Integer v) {
         this.version = v;
     }
 
@@ -106,7 +106,7 @@ public class Credentials implements Serializable {
      * Setter for name field.
      * @param n - field name in credentials table.
      */
-    public void setName(final String n) {
+    public void setName(String n) {
         this.name = n;
     }
 
@@ -122,7 +122,7 @@ public class Credentials implements Serializable {
      * Setter for password field.
      * @param pass - password string value.
      */
-    public void setPassword(final String pass) {
+    public void setPassword(String pass) {
         this.password = pass;
     }
 
@@ -138,7 +138,7 @@ public class Credentials implements Serializable {
      * Setter for authorities.
      * @param auths - authorities list
      */
-    public void setAuthorities(final List<Authority> auths) {
+    public void setAuthorities(List<Authority> auths) {
         this.authorities = auths;
     }
 
@@ -154,7 +154,7 @@ public class Credentials implements Serializable {
      * Setter for enabled field.
      * @param en - boolean value for enabled user.
      */
-    public void setEnabled(final boolean en) {
+    public void setEnabled(boolean en) {
         this.enabled = en;
     }
 }

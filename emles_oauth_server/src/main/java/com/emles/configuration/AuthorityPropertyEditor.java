@@ -21,7 +21,7 @@ public class AuthorityPropertyEditor implements PropertyEditor {
     private GrantedAuthority grantedAuthority;
 
     @Override
-    public final void setValue(final Object value) {
+    public final void setValue(Object value) {
         this.grantedAuthority = (GrantedAuthority) value;
     }
 
@@ -36,7 +36,7 @@ public class AuthorityPropertyEditor implements PropertyEditor {
     }
 
     @Override
-    public void paintValue(final Graphics gfx, final Rectangle box) {
+    public void paintValue(Graphics gfx, Rectangle box) {
 
     }
 
@@ -51,7 +51,7 @@ public class AuthorityPropertyEditor implements PropertyEditor {
     }
 
     @Override
-    public final void setAsText(final String text)
+    public final void setAsText(String text)
         throws IllegalArgumentException {
         if (text != null && !text.isEmpty()) {
             this.grantedAuthority = new SimpleGrantedAuthority(text);
