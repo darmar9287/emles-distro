@@ -22,55 +22,95 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 
+/**
+ * Controller class for signing in.
+ * @author Dariusz Kulig
+ *
+ */
 @Controller
 public class LoginController {
-    
-	@Autowired
+
+    /**
+     * clientDetailsService - Basic, JDBC implementation
+     * of the client details service.
+     */
+    @Autowired
     private JdbcClientDetailsService clientDetailsService;
 
+    /**
+     * approvalStore - Interface for saving, retrieving and revoking
+     * user approvals (per client, per scope).
+     */
     @Autowired
     private ApprovalStore approvalStore;
-    
+
+    /**
+     * tokenStore - used for caching access tokens.
+     */
     @Autowired
     private TokenStore tokenStore;
-    
+
+    /**
+     * Method mapping to root path of application.
+     * @param model - map of params which are passed to the view.
+     * @param principal - signed in user object.
+     * @return returns view with attribues passed to view.
+     */
     @RequestMapping("/")
-    public ModelAndView root(Map<String,Object> model, Principal principal) {
+    public ModelAndView root(final Map<String, Object> model,
+      final Principal principal) {
 
-
-        List<Approval> approvals=clientDetailsService.listClientDetails().stream()
-                .map(clientDetails -> approvalStore.getApprovals(principal.getName(),clientDetails.getClientId()))
+        List<Approval> approvals = clientDetailsService.listClientDetails()
+                .stream()
+                .map(clientDetails -> approvalStore.getApprovals(
+                        principal.getName(),
+                        clientDetails.getClientId()))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
-        model.put("approvals",approvals);
-        model.put("clientDetails",clientDetailsService.listClientDetails());
-        return new ModelAndView ("index",model);
+        model.put("approvals", approvals);
+        model.put("clientDetails", clientDetailsService.listClientDetails());
+        return new ModelAndView("index", model);
     }
 
-    
-
-    @RequestMapping(value="/approval/revoke",method= RequestMethod.POST)
-    public String revokApproval(@ModelAttribute Approval approval){
+    /**
+     * Method for revoking auth token.
+     * @param approval - oauth approval list.
+     * @return name of template file for revocation of token.
+     */
+    @RequestMapping(value = "/approval/revoke", method = RequestMethod.POST)
+    public String revokeApproval(@ModelAttribute final Approval approval) {
 
         approvalStore.revokeApprovals(asList(approval));
-        tokenStore.findTokensByClientIdAndUserName(approval.getClientId(),approval.getUserId())
-                .forEach(tokenStore::removeAccessToken) ;
+        tokenStore.findTokensByClientIdAndUserName(approval.getClientId(),
+                approval.getUserId())
+                .forEach(tokenStore::removeAccessToken);
         return "redirect:/";
     }
 
+    /**
+     * Method mapping request to login page.
+     * @return name of template file for logout page.
+     */
     @RequestMapping("/login")
     public String loginPage() {
         return "login";
     }
 
-
-
-    @RequestMapping(value="/logout", method = RequestMethod.GET)
-    public String logoutPage (HttpServletRequest request, HttpServletResponse response) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null){
+    /**
+     * Method mapping request to logout page.
+     * @param request - HttpServletRequest object with contents of request.
+     * @param response - HttpServletResponse object with contents of response.
+     * @return name of template file for logout page.
+     */
+    @RequestMapping(value = "/logout", method = RequestMethod.GET)
+    public String logoutPage(final HttpServletRequest request,
+        final HttpServletResponse response) {
+        Authentication auth = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (auth != null) {
             new SecurityContextLogoutHandler().logout(request, response, auth);
         }
-        return "redirect:/login?logout";}
+        return "redirect:/login?logout";
+     }
 }

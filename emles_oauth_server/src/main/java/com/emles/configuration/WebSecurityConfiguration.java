@@ -11,11 +11,21 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+/**
+ * Configuration for web security.
+ * @author dariusz
+ *
+ */
 @EnableWebSecurity
 @Configuration
-public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+public final class WebSecurityConfiguration
+    extends WebSecurityConfigurerAdapter {
 
 
+    /**
+     * Bean for password encoder.
+     * @return Bcrypt password encoder instance.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -28,35 +38,34 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/webjars/**","/resources/**");
+    public void configure(final WebSecurity web) throws Exception {
+        web.ignoring().antMatchers("/webjars/**", "/resources/**");
 
     }
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    protected void configure(final HttpSecurity http) throws Exception {
         http
-                .authorizeRequests()
-                .antMatchers("/login","/logout.do").permitAll()
-                .antMatchers("/**").authenticated()
-                .and()
-                .formLogin()
-                .loginProcessingUrl("/login.do")
-                .usernameParameter("username")
-                .passwordParameter("password")
-                .loginPage("/login")
-                .and()
-                .logout()
-                .logoutRequestMatcher(new AntPathRequestMatcher("/logout.do"))
-                .and()
-                .userDetailsService(userDetailsServiceBean());
+        .authorizeRequests()
+        .antMatchers("/login", "/logout.do").permitAll()
+        .antMatchers("/**").authenticated()
+        .and()
+        .formLogin()
+        .loginProcessingUrl("/login.do")
+        .usernameParameter("username")
+        .passwordParameter("password")
+        .loginPage("/login")
+        .and()
+        .logout()
+        .logoutRequestMatcher(new AntPathRequestMatcher("/logout.do"))
+        .and()
+        .userDetailsService(userDetailsServiceBean());
     }
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    protected void configure(final AuthenticationManagerBuilder auth)
+            throws Exception {
         auth.userDetailsService(userDetailsServiceBean())
         .passwordEncoder(passwordEncoder());
     }
-
-
 }
