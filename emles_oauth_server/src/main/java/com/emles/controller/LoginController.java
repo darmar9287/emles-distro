@@ -1,4 +1,4 @@
-package com.emles.api;
+package com.emles.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,13 +24,18 @@ import static java.util.Arrays.asList;
 
 @Controller
 public class LoginController {
-    @Autowired
+    
+	@Autowired
     private JdbcClientDetailsService clientDetailsService;
 
     @Autowired
     private ApprovalStore approvalStore;
+    
+    @Autowired
+    private TokenStore tokenStore;
+    
     @RequestMapping("/")
-    public ModelAndView root(Map<String,Object> model, Principal principal){
+    public ModelAndView root(Map<String,Object> model, Principal principal) {
 
 
         List<Approval> approvals=clientDetailsService.listClientDetails().stream()
@@ -38,15 +43,12 @@ public class LoginController {
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
-
         model.put("approvals",approvals);
         model.put("clientDetails",clientDetailsService.listClientDetails());
         return new ModelAndView ("index",model);
-
     }
 
-    @Autowired
-    private TokenStore tokenStore;
+    
 
     @RequestMapping(value="/approval/revoke",method= RequestMethod.POST)
     public String revokApproval(@ModelAttribute Approval approval){
