@@ -2,6 +2,7 @@ package com.emles.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -22,6 +23,17 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @Configuration
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
+	/**
+	 * Bean for authentication manager. Needed for password grant type.
+	 * 
+	 * @return AuthenticationManager instance.
+	 */
+	@Bean
+	@Override
+	public AuthenticationManager authenticationManagerBean() throws Exception {
+		return super.authenticationManagerBean();
+	}
+	
 	/**
 	 * Bean for password encoder.
 	 * 

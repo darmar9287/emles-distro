@@ -1,4 +1,4 @@
-package com.emles.domain;
+package com.emles.model;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;

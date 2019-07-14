@@ -4,6 +4,8 @@ services:
     image: 'postgres:latest'
     volumes:
       - ./postgres_scripts/db_creation.sql:/docker-entrypoint-initdb.d/1-init.sql
+  redis:
+    image: 'redis:latest'
   auth_server:
     build: ./emles_oauth_server
     volumes:
@@ -15,10 +17,13 @@ services:
       - PG_TEST_DATABASE=emles_oauth2_test
       - PGPASSWORD=postgres_password
       - PGPORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     ports:
       - '8000:8081'
     depends_on:
       - postgres
+      - redis
   distribution_res_server:
     build: ./emles_distribution_resource_server
     volumes:
@@ -30,8 +35,11 @@ services:
       - PG_TEST_DATABASE=emles_oauth2_test
       - PGPASSWORD=postgres_password
       - PGPORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     ports:
       - '8001:8083'
     depends_on:
       - postgres
+      - redis
       - auth_server

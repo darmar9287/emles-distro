@@ -1,15 +1,19 @@
 package com.emles.configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
 
 import javax.sql.DataSource;
 
@@ -17,6 +21,32 @@ import javax.sql.DataSource;
 @Configuration
 public class ResourcesServerConfiguration  extends ResourceServerConfigurerAdapter {
 
+	
+	@Value("${spring.redis.host}")
+	private String redisHost;
+	
+	@Value("${spring.redis.port}")
+	private int redisPort;
+	
+	@Bean
+	public RedisConnectionFactory redisConnectionFactory() {
+		
+		RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+		config.setHostName(redisHost);
+		config.setPort(redisPort);
+		
+		return new JedisConnectionFactory(config);
+	}
+	
+	/**
+     * Token store bean.
+     * @return JdbcTokenStore.
+     */
+    @Bean
+    public TokenStore tokenStore() {
+		return new RedisTokenStore(redisConnectionFactory());
+    }
+	
     @Bean
     @ConfigurationProperties(prefix="spring.datasource")
     public DataSource ouathDataSource(){return DataSourceBuilder.create().build();}
@@ -24,8 +54,7 @@ public class ResourcesServerConfiguration  extends ResourceServerConfigurerAdapt
     @Override
     public void configure(ResourceServerSecurityConfigurer resources)throws Exception{
 
-        TokenStore tokenStore=new JdbcTokenStore(ouathDataSource());
-        resources.resourceId("product_api").tokenStore(tokenStore);
+        resources.resourceId("product_api").tokenStore(tokenStore());
 
     }
     @Override

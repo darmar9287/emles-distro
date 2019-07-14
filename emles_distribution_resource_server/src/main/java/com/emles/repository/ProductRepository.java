@@ -2,7 +2,7 @@ package com.emles.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.emles.domain.Product;
+import com.emles.model.Product;
 
 import java.util.List;
 

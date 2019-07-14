@@ -3,7 +3,7 @@ package com.emles.api;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.emles.domain.Product;
+import com.emles.model.Product;
 import com.emles.repository.ProductRepository;
 
 import java.util.List;
