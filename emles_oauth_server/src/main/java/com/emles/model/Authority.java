@@ -6,6 +6,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
+
 import java.io.Serializable;
 
 /**
@@ -24,6 +26,7 @@ public final class Authority implements GrantedAuthority, Serializable {
     private Long id;
 
     /** authority field in DB.*/
+    @NotNull
     private String authority;
 
     /**

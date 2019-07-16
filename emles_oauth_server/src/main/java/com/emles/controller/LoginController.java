@@ -66,7 +66,6 @@ public class LoginController {
                         clientDetails.getClientId()))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
-
         model.put("approvals", approvals);
         model.put("clientDetails", clientDetailsService.listClientDetails());
         return new ModelAndView("index", model);
