@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +21,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -99,5 +102,67 @@ public class ClientsIntegrationTest {
 		String responseString = result.getResponse().getContentAsString();
 		List<Object> responseMap = jsonParser.parseList(responseString);
 		assertTrue(responseMap.size() == 3);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testShowClientDetails() throws Exception {
+		String accessToken = loginAs("oauth_admin", oauthAdminClientId);
+		BaseClientDetails oauthClientDetails = (BaseClientDetails)jdbcClientDetailsService.loadClientByClientId(oauthAdminClientId);
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		
+		MvcResult result = mvc.perform(get("/clients/show/" + oauthAdminClientId)
+				.params(params)
+				.headers(httpHeaders)
+				.accept("application/json;charset=UTF-8"))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+		
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		List<String> scopes = (List<String>)responseMap.get("scope");
+		List<String> resourceIds = (List<String>)responseMap.get("resource_ids");
+		List<String> authorizedGrantTypes = (List<String>)responseMap.get("authorized_grant_types");
+		List<String> registeredRedirectUris = (List<String>)responseMap.get("redirect_uri");
+		List<String> autoApproveScopes = (List<String>)responseMap.get("autoapprove");
+		List<String> authorities = (List<String>)responseMap.get("authorities");
+		
+		assertTrue(oauthClientDetails.getClientId().equals(responseMap.get("client_id")));
+		assertTrue(oauthClientDetails.getClientSecret().equals(responseMap.get("client_secret")));
+		assertTrue(oauthClientDetails.getAccessTokenValiditySeconds().equals(responseMap.get("access_token_validity")));
+		assertTrue(oauthClientDetails.getRefreshTokenValiditySeconds().equals(responseMap.get("refresh_token_validity")));
+		assertTrue(scopes.equals(oauthClientDetails.getScope().stream().collect(Collectors.toList())));
+		assertTrue(resourceIds.equals(oauthClientDetails.getResourceIds().stream().collect(Collectors.toList())));
+		assertTrue(authorizedGrantTypes.equals(oauthClientDetails.getAuthorizedGrantTypes().stream().collect(Collectors.toList())));
+		assertTrue(registeredRedirectUris.equals(oauthClientDetails.getRegisteredRedirectUri().stream().collect(Collectors.toList())));
+		assertTrue(autoApproveScopes.equals(oauthClientDetails.getAutoApproveScopes().stream().collect(Collectors.toList())));
+		assertTrue(authorities.equals(oauthClientDetails.getAuthorities().stream().map(GrantedAuthority::toString).collect(Collectors.toList())));
+	}
+	
+	@Test
+	public void testShowClientDetailsReturns404ForNotExistingClientId() throws Exception {
+		String accessToken = loginAs("oauth_admin", oauthAdminClientId);
+		String nonExistingClientId = "does_not_exist";
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		
+		MvcResult result = mvc.perform(get("/clients/show/" + nonExistingClientId)
+				.params(params)
+				.headers(httpHeaders)
+				.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(404))
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+		
+		String responseString = result.getResponse().getContentAsString();
+		assertTrue(responseString.contains("Invalid client_id"));
 	}
 }

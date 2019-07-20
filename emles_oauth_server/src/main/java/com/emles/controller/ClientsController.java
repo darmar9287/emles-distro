@@ -69,17 +69,13 @@ public class ClientsController {
      * @param id - client id.
      * @return entity with client details response (200).
      * @throws JSONException 
-     * @throws InvalidClientException 
      */
     @RequestMapping(value = "/show/{client.clientId}",
             method = RequestMethod.GET)
     @PreAuthorize("hasRole('ROLE_OAUTH_ADMIN')")
     public ResponseEntity<?> showClient(
-        @PathVariable("client.clientId") String id) throws InvalidClientException, JSONException {
-    	
-    	JSONObject clientDetailsJson = new JSONObject();
-    	clientDetailsJson.put("client", clientsDetailsService.loadClientByClientId(id));
-        return new ResponseEntity<>(clientDetailsJson, HttpStatus.OK);
+        @PathVariable("client.clientId") String id) throws InvalidClientException {
+        return new ResponseEntity<>(clientsDetailsService.loadClientByClientId(id), HttpStatus.OK);
     }
 
     /**
