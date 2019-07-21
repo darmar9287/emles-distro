@@ -59,19 +59,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected final void configure(HttpSecurity http) throws Exception {
-		http.authorizeRequests().antMatchers("/login", "/logout.do")
-		.permitAll()
+		http.authorizeRequests()
 		.antMatchers("/**")
 		.authenticated()
-		.and()
-		.formLogin()
-		.loginProcessingUrl("/login.do")
-		.usernameParameter("username")
-		.passwordParameter("password")
-		.loginPage("/login")
-		.and()
-		.logout()
-		.logoutRequestMatcher(new AntPathRequestMatcher("/logout.do"))
 		.and()
 		.userDetailsService(userDetailsServiceBean());
 	}
