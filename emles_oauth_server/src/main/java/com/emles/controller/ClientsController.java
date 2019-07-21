@@ -1,7 +1,6 @@
 package com.emles.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.HttpStatus;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +24,8 @@ import com.emles.configuration.AuthorityPropertyEditor;
 import com.emles.configuration.SplitCollectionEditor;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -79,32 +81,37 @@ public class ClientsController {
     }
 
     /**
+     * Endpoint for creating oauth client in db.
+     * @param clientDetails - client details object.
+     * @return JSON object with success message.
+     */
+    @RequestMapping(value = "/create", method = RequestMethod.POST)
+    @PreAuthorize("hasRole('ROLE_OAUTH_ADMIN')")
+    public ResponseEntity<?> createClient(@RequestBody BaseClientDetails clientDetails) {
+    	clientsDetailsService.addClientDetails(clientDetails);
+        Map<String, Object> response = new HashMap<>();
+        response.put("msg", "Client has been created");
+        return ResponseEntity.ok().body(response);
+    }
+    
+    /**
      * Endpoint for editing oauth client in db.
      * @param clientDetails - client details object.
-     * @param newClient - if present, creates new oauth client.
-     * @return view name for this endpoint.
-     * @throws JSONException 
+     * @return JSON object with success message.
      */
-    @RequestMapping(value = "/edit", method = RequestMethod.POST)
+    @RequestMapping(value = "/edit", method = RequestMethod.PUT)
     @PreAuthorize("hasRole('ROLE_OAUTH_ADMIN')")
-    public ResponseEntity<?> editClient(@ModelAttribute BaseClientDetails clientDetails,
-            @RequestParam(value = "newClient", required = false) String newClient) throws JSONException {
-        
-    	if (newClient == null) {
-            clientsDetailsService.updateClientDetails(clientDetails);
-        } else {
-            clientsDetailsService.addClientDetails(clientDetails);
-        }
-
+    public ResponseEntity<?> editClient(@RequestBody BaseClientDetails clientDetails) {
+    	clientsDetailsService.updateClientDetails(clientDetails);
         if (!clientDetails.getClientSecret().isEmpty()) {
             clientsDetailsService
             .updateClientSecret(
                     clientDetails.getClientId(),
                     clientDetails.getClientSecret());
         }
-        JSONObject msg = new JSONObject();
-        msg.put("msg", "Client data has been updated");
-        return ResponseEntity.ok().body(msg);
+        Map<String, Object> response = new HashMap<>();
+        response.put("msg", "Client has been updated");
+        return ResponseEntity.ok().body(response);
     }
 
     /**
@@ -113,14 +120,12 @@ public class ClientsController {
      * @param id - client id.
      * @return empty entity response (200).
      */
-    @RequestMapping(value = "/delete/{client.clientId}",
+    @RequestMapping(value = "/delete/{clientId}",
             method = RequestMethod.DELETE)
     @PreAuthorize("hasRole('ROLE_OAUTH_ADMIN')")
     public ResponseEntity<?> deleteClient(
-        @PathVariable("client.clientId") String id) {
-
-        clientsDetailsService.removeClientDetails(
-            clientsDetailsService.loadClientByClientId(id).toString());
+        @PathVariable("clientId") String id) {
+        clientsDetailsService.removeClientDetails(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

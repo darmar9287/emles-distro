@@ -61,4 +61,9 @@ public final class Authority implements GrantedAuthority, Serializable {
     public void setAuthority(String auth) {
         this.authority = auth;
     }
+    
+    @Override
+    public String toString() {
+    	return authority;
+    }
 }
