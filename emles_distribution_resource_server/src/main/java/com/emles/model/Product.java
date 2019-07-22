@@ -30,16 +30,12 @@ public class Product implements Serializable{
 	@Column(name="product_price", nullable=false)
 	@Digits(integer = 10, fraction = 2)
 	private BigDecimal productPrice;
-
-	@OneToMany(mappedBy="orderDetailId")
-	private List<OrderDetail> orderDetails;
 	
-	public Product(String productName, Long productQuantityLeft, BigDecimal productPrice, List<OrderDetail> orderDetails) {
+	public Product(String productName, Long productQuantityLeft, BigDecimal productPrice) {
 		super();
 		this.productName = productName;
 		this.productQuantityLeft = productQuantityLeft;
 		this.productPrice = productPrice;
-		this.orderDetails = orderDetails;
 	}
 	
 	public Product() {}
@@ -74,13 +70,5 @@ public class Product implements Serializable{
 
 	public void setProductPrice(BigDecimal productPrice) {
 		this.productPrice = productPrice;
-	}
-
-	public List<OrderDetail> getOrderDetails() {
-		return orderDetails;
-	}
-
-	public void setOrderDetails(List<OrderDetail> orderDetails) {
-		this.orderDetails = orderDetails;
 	}
 }

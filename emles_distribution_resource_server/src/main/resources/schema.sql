@@ -93,10 +93,10 @@ CREATE TABLE customer (
     customer_address text[]
 );
 
-DROP TABLE IF EXISTS "order" CASCADE;
-CREATE TABLE "order" (
-    order_id integer NOT NULL,
-    order_date date NOT NULL,
+DROP TABLE IF EXISTS purchase_order CASCADE;
+CREATE TABLE purchase_order (
+    purchase_order_id integer NOT NULL,
+    purchase_order_date date NOT NULL,
     customer_id integer NOT NULL,
     app_user_id integer NOT NULL
 );
@@ -104,7 +104,7 @@ CREATE TABLE "order" (
 DROP TABLE IF EXISTS order_detail CASCADE;
 CREATE TABLE order_detail (
     order_detail_id integer NOT NULL,
-    order_id integer NOT NULL,
+    purchase_order_id integer NOT NULL,
     product_id integer NOT NULL,
     quantity integer NOT NULL
 );
@@ -126,31 +126,26 @@ ALTER TABLE ONLY order_detail
     ADD CONSTRAINT order_detail_pkey PRIMARY KEY (order_detail_id);
 
 
-ALTER TABLE "order"
-    ADD CONSTRAINT order_pkey PRIMARY KEY (order_id);
+ALTER TABLE purchase_order
+    ADD CONSTRAINT purchase_order_pkey PRIMARY KEY (purchase_order_id);
 
 
 ALTER TABLE product
     ADD CONSTRAINT product_pkey PRIMARY KEY (product_id);
 
 
-ALTER TABLE "order"
+ALTER TABLE purchase_order
     ADD CONSTRAINT customer_id FOREIGN KEY (customer_id) REFERENCES customer(customer_id);
 
 
 ALTER TABLE order_detail
-    ADD CONSTRAINT order_id FOREIGN KEY (order_id) REFERENCES "order"(order_id);
+    ADD CONSTRAINT purchase_order_id FOREIGN KEY (purchase_order_id) REFERENCES purchase_order(purchase_order_id);
 
 
 ALTER TABLE order_detail
     ADD CONSTRAINT product_id FOREIGN KEY (product_id) REFERENCES product(product_id);
 
 
-<<<<<<< c7645a7d5db4f54242e9a9cddf83d1d9031479d7
-ALTER TABLE orders
+ALTER TABLE purchase_order
     ADD CONSTRAINT app_user_id FOREIGN KEY (app_user_id) REFERENCES app_user(user_id);
 
-=======
-ALTER TABLE "order"
-    ADD CONSTRAINT app_user_id FOREIGN KEY (app_user_id) REFERENCES app_user(id);
->>>>>>> added model classes

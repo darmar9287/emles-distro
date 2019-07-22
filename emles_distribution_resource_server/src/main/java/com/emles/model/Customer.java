@@ -25,16 +25,16 @@ public class Customer implements Serializable{
 
 	@Column(name="customer_address", nullable=false)
 	private String customerAddress;
-	
-	@OneToMany(mappedBy="orderId")
-	private List<Order> orders;
 
-	public Customer(String customerName, String customerPhone, String customerAddress, List<Order> orders) {
+	@OneToMany(mappedBy="purchaseOrderId")
+	private List<PurchaseOrder> purchaseOrders;
+
+	public Customer(String customerName, String customerPhone, String customerAddress, List<PurchaseOrder> purchaseOrders) {
 		super();
 		this.customerName = customerName;
 		this.customerPhone = customerPhone;
 		this.customerAddress = customerAddress;
-		this.orders = orders;
+		this.purchaseOrders = purchaseOrders;
 	}
 	
 	public Customer() {}
@@ -71,11 +71,11 @@ public class Customer implements Serializable{
 		this.customerAddress = customerAddress;
 	}
 
-	public List<Order> getOrders() {
-		return orders;
+	public List<PurchaseOrder> getPurchaseOrders() {
+		return purchaseOrders;
 	}
 
-	public void setOrders(List<Order> orders) {
-		this.orders = orders;
+	public void setOrders(List<PurchaseOrder> purchaseOrders) {
+		this.purchaseOrders = purchaseOrders;
 	}
 }

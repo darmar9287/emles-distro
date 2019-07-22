@@ -27,8 +27,8 @@ public class OrderDetail implements Serializable {
 	private Long orderDetailId;
 	
 	@ManyToOne(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
-	@JoinColumn(name = "order_id", nullable = false)
-	private Order orderId;
+	@JoinColumn(name = "purchase_order_id", nullable = false)
+	private PurchaseOrder purchaseOrderId;
 
 	@ManyToOne(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
 	@JoinColumn(name = "product_id", nullable = false)
@@ -40,11 +40,11 @@ public class OrderDetail implements Serializable {
 	public OrderDetail() {
 		
 	}
-	
-	public OrderDetail(Long orderDetailId, Order orderId, Product productId, Integer quantity) {
+
+	public OrderDetail(Long orderDetailId, PurchaseOrder purchaseOrderId, Product productId, Integer quantity) {
 		super();
 		this.orderDetailId = orderDetailId;
-		this.orderId = orderId;
+		this.purchaseOrderId = purchaseOrderId;
 		this.productId = productId;
 		this.quantity = quantity;
 	}
@@ -57,12 +57,12 @@ public class OrderDetail implements Serializable {
 		this.orderDetailId = orderDetailId;
 	}
 
-	public Order getOrderId() {
-		return orderId;
+	public PurchaseOrder getPurchaseOrderId() {
+		return purchaseOrderId;
 	}
 
-	public void setOrderId(Order orderId) {
-		this.orderId = orderId;
+	public void setPurchaseOrderId(PurchaseOrder purchaseOrderId) {
+		this.purchaseOrderId = purchaseOrderId;
 	}
 
 	public Product getProductId() {
