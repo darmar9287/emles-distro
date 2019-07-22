@@ -5,6 +5,7 @@ import javax.validation.constraints.Digits;
 import javax.validation.constraints.Min;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Table(name="product")
@@ -30,11 +31,15 @@ public class Product implements Serializable{
 	@Digits(integer = 10, fraction = 2)
 	private BigDecimal productPrice;
 
-	public Product(String productName, Long productQuantityLeft, BigDecimal productPrice) {
+	@OneToMany(mappedBy="orderDetailId")
+	private List<OrderDetail> orderDetails;
+	
+	public Product(String productName, Long productQuantityLeft, BigDecimal productPrice, List<OrderDetail> orderDetails) {
 		super();
 		this.productName = productName;
 		this.productQuantityLeft = productQuantityLeft;
 		this.productPrice = productPrice;
+		this.orderDetails = orderDetails;
 	}
 	
 	public Product() {}
@@ -69,5 +74,13 @@ public class Product implements Serializable{
 
 	public void setProductPrice(BigDecimal productPrice) {
 		this.productPrice = productPrice;
+	}
+
+	public List<OrderDetail> getOrderDetails() {
+		return orderDetails;
+	}
+
+	public void setOrderDetails(List<OrderDetail> orderDetails) {
+		this.orderDetails = orderDetails;
 	}
 }
