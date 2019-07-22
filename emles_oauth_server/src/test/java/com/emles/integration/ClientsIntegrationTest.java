@@ -10,12 +10,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,9 +27,12 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.NoSuchClientException;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.TestPropertySource;
@@ -62,6 +64,12 @@ public class ClientsIntegrationTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 	
+	@Autowired
+	private PasswordEncoder bcryptEncoder;
+	
+	@Autowired
+	private TokenStore tokenStore;
+	
 	private JsonParser jsonParser;
 	
 	private String productAdminClientId = "integration_test_product_admin";
@@ -72,7 +80,7 @@ public class ClientsIntegrationTest {
 	
 	private String password = "user";
 	
-	private String clientSecretHash = "$2a$10$BurTWIy5NTF9GJJH4magz.9Bd4bBurWYG8tmXxeQh1vs7r/wnCFG2";
+	private String accessToken = "";
 	
 	private String loginAs(String userName, String clientId) throws Exception {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -98,9 +106,15 @@ public class ClientsIntegrationTest {
 		jsonParser = JsonParserFactory.getJsonParser();
 	}
 	
+	@After
+	public void tearDown() {
+		OAuth2AccessToken oauthAccessToken = tokenStore.readAccessToken(accessToken);
+		tokenStore.removeAccessToken(oauthAccessToken);
+	}
+	
 	@Test
 	public void testListingOfClientDetails() throws Exception {
-		String accessToken = loginAs("oauth_admin", oauthAdminClientId);
+		accessToken = loginAs("oauth_admin", oauthAdminClientId);
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", oauthAdminClientId);
@@ -121,7 +135,7 @@ public class ClientsIntegrationTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testShowClientDetails() throws Exception {
-		String accessToken = loginAs("oauth_admin", oauthAdminClientId);
+		accessToken = loginAs("oauth_admin", oauthAdminClientId);
 		BaseClientDetails oauthClientDetails = (BaseClientDetails)jdbcClientDetailsService.loadClientByClientId(oauthAdminClientId);
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
@@ -160,7 +174,7 @@ public class ClientsIntegrationTest {
 	
 	@Test
 	public void testShowClientDetailsReturns404ForNotExistingClientId() throws Exception {
-		String accessToken = loginAs("oauth_admin", oauthAdminClientId);
+		accessToken = loginAs("oauth_admin", oauthAdminClientId);
 		String nonExistingClientId = "does_not_exist";
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
@@ -183,14 +197,14 @@ public class ClientsIntegrationTest {
 	
 	@Test
 	public void testCreateNewClientSuccess() throws Exception {
-		String accessToken = loginAs("oauth_admin", oauthAdminClientId);
+		accessToken = loginAs("oauth_admin", oauthAdminClientId);
 		String newClientId = "new_client_id";
 		
 		Authority authority = new Authority();
 		authority.setId(3L);
 		authority.setAuthority("ROLE_PRODUCT_ADMIN");
 		
-		BaseClientDetails baseClientDetails = createBaseClientDetails(newClientId, authority);
+		BaseClientDetails baseClientDetails = createBaseClientDetails(newClientId, password, authority);
 		
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
@@ -212,24 +226,25 @@ public class ClientsIntegrationTest {
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 		assertTrue(responseMap.get("msg").equals("Client has been created"));
 		
-		compareClientDetails(newClientId, baseClientDetails);
+		compareClientDetails(newClientId, password, baseClientDetails);
 	}
 	
 	@Test
 	public void testUpdateExistingClientId() throws Exception {
-		String accessToken = loginAs("oauth_admin", oauthAdminClientId);
+		accessToken = loginAs("oauth_admin", oauthAdminClientId);
 		String newClientId = "new_client_id";
+		String newPassword = "hash";
 		
 		Authority authority = new Authority();
 		authority.setId(3L);
 		authority.setAuthority("ROLE_PRODUCT_ADMIN");
 		
-		BaseClientDetails baseClientDetails = createBaseClientDetails(newClientId, authority);
+		BaseClientDetails baseClientDetails = createBaseClientDetails(newClientId, password, authority);
 		jdbcClientDetailsService.addClientDetails(baseClientDetails);
 		
 		authority.setAuthority("ROLE_RESOURCE_ADMIN");
 		baseClientDetails.setAuthorities(Arrays.asList(authority));
-		baseClientDetails.setClientSecret("hash");
+		baseClientDetails.setClientSecret(newPassword);
 		baseClientDetails.setScope(Arrays.asList("read"));
 		baseClientDetails.setResourceIds(Arrays.asList("resource_server_api"));
 		baseClientDetails.setAuthorizedGrantTypes(Arrays.asList("implicit"));
@@ -257,19 +272,19 @@ public class ClientsIntegrationTest {
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 		assertTrue(responseMap.get("msg").equals("Client has been updated"));
 		
-		compareClientDetails(newClientId, baseClientDetails);
+		compareClientDetails(newClientId, newPassword, baseClientDetails);
 	}
 	
 	@Test
 	public void testUpdateNonExistingClientId() throws Exception {
-		String accessToken = loginAs("oauth_admin", oauthAdminClientId);
+		accessToken = loginAs("oauth_admin", oauthAdminClientId);
 		String newClientId = "new_client_id";
 		
 		Authority authority = new Authority();
 		authority.setId(3L);
 		authority.setAuthority("ROLE_PRODUCT_ADMIN");
 		
-		BaseClientDetails baseClientDetails = createBaseClientDetails(newClientId, authority);
+		BaseClientDetails baseClientDetails = createBaseClientDetails(newClientId, password, authority);
 		jdbcClientDetailsService.addClientDetails(baseClientDetails);
 		
 		authority.setAuthority("ROLE_RESOURCE_ADMIN");
@@ -306,14 +321,14 @@ public class ClientsIntegrationTest {
 	
 	@Test(expected = NoSuchClientException.class)
 	public void testDeleteClientSuccessful() throws Exception {
-		String accessToken = loginAs("oauth_admin", oauthAdminClientId);
+		accessToken = loginAs("oauth_admin", oauthAdminClientId);
 		String newClientId = "new_client_id";
 		
 		Authority authority = new Authority();
 		authority.setId(3L);
 		authority.setAuthority("ROLE_PRODUCT_ADMIN");
 		
-		BaseClientDetails baseClientDetails = createBaseClientDetails(newClientId, authority);
+		BaseClientDetails baseClientDetails = createBaseClientDetails(newClientId, password, authority);
 		jdbcClientDetailsService.addClientDetails(baseClientDetails);
 		
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -334,7 +349,7 @@ public class ClientsIntegrationTest {
 	
 	@Test
 	public void testDeleteClientUnsuccessful() throws Exception {
-		String accessToken = loginAs("oauth_admin", oauthAdminClientId);
+		accessToken = loginAs("oauth_admin", oauthAdminClientId);
 		String newClientId = "non_existing";
 		
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -352,10 +367,160 @@ public class ClientsIntegrationTest {
 				.andReturn();
 	}
 	
-	private BaseClientDetails createBaseClientDetails(String clientId, Authority authority) {
+	@Test
+	public void testIfProductAdminHasNoAccessToShowClientDetailsEndpoint() throws Exception {
+		accessToken = loginAs("product_admin", productAdminClientId);
+		performShowClientReturns403(productAdminClientId, accessToken);
+	}
+	
+	@Test
+	public void testIfResourceAdminHasNoAccessToShowClientDetailsEndpoint() throws Exception {
+		accessToken = loginAs("resource_admin", resourceAdminClientId);
+		performShowClientReturns403(resourceAdminClientId, accessToken);
+	}
+	
+	@Test
+	public void testIfProductAdminHasNoAccessToUpdateClientDetailsEndpoint() throws Exception {
+		accessToken = loginAs("product_admin", productAdminClientId);
+		performUpdateClientReturns403(productAdminClientId, accessToken);
+	}
+	
+	@Test
+	public void testIfResourceAdminHasNoAccessToUpdateClientDetailsEndpoint() throws Exception {
+		accessToken = loginAs("resource_admin", resourceAdminClientId);
+		performUpdateClientReturns403(resourceAdminClientId, accessToken);
+	}
+	
+	@Test
+	public void testIfProductAdminHasNoAccessToCreateClientDetailsEndpoint() throws Exception {
+		accessToken = loginAs("product_admin", productAdminClientId);
+		performCreateClientReturns403(productAdminClientId, accessToken);
+	}
+	
+	@Test
+	public void testIfResourceAdminHasNoAccessToCreateClientDetailsEndpoint() throws Exception {
+		accessToken = loginAs("resource_admin", resourceAdminClientId);
+		performCreateClientReturns403(resourceAdminClientId, accessToken);
+	}
+	
+	@Test
+	public void testIfProductAdminHasNoAccessToDeleteClientDetailsEndpoint() throws Exception {
+		accessToken = loginAs("product_admin", productAdminClientId);
+		performDeleteClientReturns403(productAdminClientId, accessToken);
+	}
+	
+	@Test
+	public void testIfResourceAdminHasNoAccessToDeleteClientDetailsEndpoint() throws Exception {
+		accessToken = loginAs("resource_admin", resourceAdminClientId);
+		performDeleteClientReturns403(resourceAdminClientId, accessToken);
+	}
+	
+	@Test
+	public void testIfProductAdminHasNoAccessToListClientDetailsEndpoint() throws Exception {
+		accessToken = loginAs("product_admin", productAdminClientId);
+		performListClientsReturns403(productAdminClientId, accessToken);
+	}
+	
+	@Test
+	public void testIfResourceAdminHasNoAccessToListClientDetailsEndpoint() throws Exception {
+		accessToken = loginAs("resource_admin", resourceAdminClientId);
+		performListClientsReturns403(resourceAdminClientId, accessToken);
+	}
+
+	private void performShowClientReturns403(String clientId, String accessToken) throws Exception {
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", clientId);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		mvc.perform(get("/clients/show/" + clientId)
+				.params(params)
+				.headers(httpHeaders)
+				.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(403))
+				.andExpect(content().contentType("application/json;charset=UTF-8"));
+	}
+	
+	private void performCreateClientReturns403(String clientId, String accessToken) throws Exception {
+		String newClientId = "new_client_id";
+		
+		Authority authority = new Authority();
+		authority.setId(3L);
+		authority.setAuthority("ROLE_OAUTH_ADMIN");
+		
+		BaseClientDetails baseClientDetails = createBaseClientDetails(newClientId, password, authority);
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		
+		mvc.perform(post("/clients/create")
+			.params(params)
+			.content(objectMapper.writeValueAsString(baseClientDetails))
+			.contentType(MediaType.APPLICATION_JSON)
+			.headers(httpHeaders))
+			.andExpect(status().is(403))
+			.andExpect(content().contentType("application/json;charset=UTF-8"));
+	}
+	
+	private void performUpdateClientReturns403(String clientId, String accessToken) throws Exception {
+		String newClientId = "new_client_id";
+		
+		Authority authority = new Authority();
+		authority.setId(3L);
+		authority.setAuthority("ROLE_OAUTH_ADMIN");
+		
+		BaseClientDetails baseClientDetails = createBaseClientDetails(newClientId, password, authority);
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		
+		mvc.perform(put("/clients/edit")
+			.params(params)
+			.content(objectMapper.writeValueAsString(baseClientDetails))
+			.contentType(MediaType.APPLICATION_JSON)
+			.headers(httpHeaders))
+			.andExpect(status().is(403))
+			.andExpect(content().contentType("application/json;charset=UTF-8"));
+	}
+	
+	private void performDeleteClientReturns403(String clientId, String accessToken) throws Exception {
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", clientId);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		mvc.perform(delete("/clients/delete/" + clientId)
+				.params(params)
+				.headers(httpHeaders)
+				.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(403))
+				.andExpect(content().contentType("application/json;charset=UTF-8"));
+	}
+	
+	private void performListClientsReturns403(String clientId, String accessToken) throws Exception {
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", clientId);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		mvc.perform(get("/clients/list")
+				.params(params)
+				.headers(httpHeaders)
+				.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(403))
+				.andExpect(content().contentType("application/json;charset=UTF-8"));
+	}
+	
+	private BaseClientDetails createBaseClientDetails(String clientId, String plainPassword, Authority authority) {
 		BaseClientDetails baseClientDetails = new BaseClientDetails();
 		baseClientDetails.setClientId(clientId);
-		baseClientDetails.setClientSecret(clientSecretHash);
+		baseClientDetails.setClientSecret(plainPassword);
 		baseClientDetails.setScope(Arrays.asList("read", "write"));
 		baseClientDetails.setResourceIds(Arrays.asList("oauth_server_api"));
 		baseClientDetails.setAuthorizedGrantTypes(Arrays.asList("password"));
@@ -368,13 +533,14 @@ public class ClientsIntegrationTest {
 		return baseClientDetails;
 	}
 	
-	private void compareClientDetails(String clientId, BaseClientDetails baseClientDetails) {
+	private void compareClientDetails(String clientId, String plainPassword, BaseClientDetails baseClientDetails) {
 		BaseClientDetails newClientDetails = (BaseClientDetails)jdbcClientDetailsService.loadClientByClientId(clientId);
 		List<String> newClientDetailsAuthorities = newClientDetails.getAuthorities().stream().map(a -> a.getAuthority()).collect(Collectors.toList());
 		List<String> baseClientDetailsAuthorities = baseClientDetails.getAuthorities().stream().map(a -> a.getAuthority()).collect(Collectors.toList());
-		
+		String newClientDetailsSecretHash = newClientDetails.getClientSecret();
+
 		assertTrue(newClientDetails.getClientId().equals(baseClientDetails.getClientId()));
-		assertTrue(newClientDetails.getClientSecret().equals(baseClientDetails.getClientSecret()));
+		assertTrue(bcryptEncoder.matches(plainPassword, newClientDetailsSecretHash));
 		assertTrue(newClientDetails.getScope().equals(baseClientDetails.getScope()));
 		assertTrue(newClientDetails.getResourceIds().equals(baseClientDetails.getResourceIds()));
 		assertTrue(newClientDetails.getAuthorizedGrantTypes().equals(baseClientDetails.getAuthorizedGrantTypes()));

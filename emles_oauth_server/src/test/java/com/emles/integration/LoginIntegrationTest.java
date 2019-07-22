@@ -28,6 +28,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.TestPropertySource;
@@ -45,7 +47,7 @@ import com.emles.EmlesOauthServerApplication;
 	classes = EmlesOauthServerApplication.class)
 @AutoConfigureMockMvc
 @TestPropertySource(locations = "classpath:application-test.properties")
-@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class LoginIntegrationTest {
 
 	@Autowired
@@ -56,6 +58,9 @@ public class LoginIntegrationTest {
 	
 	@Autowired
     private ApprovalStore approvalStore;
+	
+	@Autowired
+	private TokenStore tokenStore;
 	
 	private String productAdminClientId = "integration_test_product_admin";
 	
