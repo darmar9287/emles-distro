@@ -9,6 +9,9 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -21,8 +24,13 @@ import org.springframework.security.oauth2.provider.client.JdbcClientDetailsServ
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
+import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
+
+import java.util.Arrays;
 
 import javax.sql.DataSource;
 
@@ -55,6 +63,9 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 	 */
 	@Autowired
 	private AuthenticationManager authenticationManager;
+	
+	@Autowired
+	private UserDetailsService userDetailsService;
 	
 	/**
      * Oauth data source bean.
@@ -95,6 +106,24 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 		return handler;
 	}
     
+    @Bean
+    public ProviderManager preAuthenticationProvider() {
+    	PreAuthenticatedAuthenticationProvider provider = new PreAuthenticatedAuthenticationProvider();
+    	provider.setPreAuthenticatedUserDetailsService(new UserDetailsByNameServiceWrapper<>(userDetailsService));
+    	return new ProviderManager(Arrays.asList(provider));
+    }
+    
+    @Bean
+    public AuthorizationServerTokenServices oauthServerTokenServices() {
+    	DefaultTokenServices tokenServices = new DefaultTokenServices();
+    	tokenServices.setClientDetailsService(jdbcClientDetailsService());
+    	tokenServices.setReuseRefreshToken(false);
+    	tokenServices.setSupportRefreshToken(true);
+    	tokenServices.setTokenStore(tokenStore());
+    	tokenServices.setAuthenticationManager(preAuthenticationProvider());
+    	return tokenServices;
+    }
+    
     /**
      * Token store bean.
      * @return JdbcTokenStore.
@@ -133,6 +162,6 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
         	.approvalStore(approvalStore()).userApprovalHandler(userApprovalHandler())
         	.authenticationManager(authenticationManager)
             .authorizationCodeServices(authorizationCodeServices())
-            .tokenStore(tokenStore());
+            .tokenServices(oauthServerTokenServices());
     }
 }

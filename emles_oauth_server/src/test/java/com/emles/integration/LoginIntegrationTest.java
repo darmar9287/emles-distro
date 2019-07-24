@@ -25,11 +25,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.TestPropertySource;
@@ -98,8 +99,7 @@ public class LoginIntegrationTest {
 	}
 	
 	@Test
-	public void testIfTokenIsRemovedFromRedisWhenItsExpired() throws Exception {
-
+	public void testAccessAndRefreshTokenExpiration() throws Exception {
 		String userName = "resource_admin";
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
@@ -107,18 +107,78 @@ public class LoginIntegrationTest {
 		params.add("username", userName);
 		params.add("password", password);
 
-		mvc.perform(post("/oauth/token")
+		MvcResult result = mvc.perform(post("/oauth/token")
 				.params(params)
 				.with(httpBasic(resourceAdminClientId, password))
 				.accept("application/json;charset=UTF-8"))
 				.andExpect(status().isOk())
-				.andExpect(content().contentType("application/json;charset=UTF-8"));
-
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+		
 		List<Approval> approvals = getApprovalsForGivenUserName(userName);
 		assertFalse(approvals.isEmpty());
-		Thread.sleep(65000L);
+		
+		Map<String, Object> responseMap = jsonParser.parseMap(result.getResponse().getContentAsString());
+		Thread.sleep(35000L);
 		approvals = getApprovalsForGivenUserName(userName);
 		assertTrue(approvals.isEmpty());
+		
+		params.clear();
+		
+		String refreshToken = (String)responseMap.get("refresh_token");
+		String accessToken = (String)responseMap.get("access_token");
+		
+		params.add("grant_type", "refresh_token");
+		params.add("client_id", resourceAdminClientId);
+		params.add("refresh_token", refreshToken);
+		result = mvc.perform(post("/oauth/token")
+				.params(params)
+				.with(httpBasic(resourceAdminClientId, password))
+				.accept("application/json;charset=UTF-8"))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+		
+		responseMap = jsonParser.parseMap(result.getResponse().getContentAsString());
+		approvals = getApprovalsForGivenUserName(userName);
+		refreshToken = (String)responseMap.get("refresh_token");
+		accessToken = (String)responseMap.get("access_token");
+		OAuth2RefreshToken oauth2RefreshToken = tokenStore.readRefreshToken(refreshToken);
+		OAuth2AccessToken oauth2AccessToken = tokenStore.readAccessToken(accessToken);
+		
+		assertTrue(oauth2AccessToken != null);
+		assertTrue(oauth2RefreshToken != null);
+		assertFalse(approvals.isEmpty());
+		
+		Thread.sleep(65000L);
+		approvals = getApprovalsForGivenUserName(userName);
+		oauth2RefreshToken = tokenStore.readRefreshToken(refreshToken);
+		oauth2AccessToken = tokenStore.readAccessToken(accessToken);
+		
+		assertTrue(oauth2AccessToken == null);
+		assertTrue(oauth2RefreshToken == null);
+		assertTrue(approvals.isEmpty());
+		
+		mvc.perform(post("/oauth/token")
+				.params(params)
+				.with(httpBasic(resourceAdminClientId, password))
+				.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(400))
+				.andExpect(content().contentType("application/json;charset=UTF-8"));
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		params.clear();
+		params.add("grant_type", "password");
+		params.add("client_id", resourceAdminClientId);
+		
+		mvc.perform(get("/clients/list")
+				.params(params)
+				.headers(httpHeaders)
+				.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(401))
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
 	}
 	
 	@Test
@@ -211,6 +271,12 @@ public class LoginIntegrationTest {
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 		String accessToken = responseMap.get("access_token").toString();
+		String refreshToken = (String)responseMap.get("refresh_token");
+		OAuth2RefreshToken oauth2RefreshToken = tokenStore.readRefreshToken(refreshToken);
+		OAuth2AccessToken oauth2AccessToken = tokenStore.readAccessToken(accessToken);
+		
+		assertTrue(oauth2AccessToken != null);
+		assertTrue(oauth2RefreshToken != null);
 		
 		params.clear();
 		params.add("grant_type", "password");
@@ -224,6 +290,11 @@ public class LoginIntegrationTest {
 				.andExpect(status().is(204));
 		
 		approvals = getApprovalsForGivenUserName(userName);
+		oauth2RefreshToken = tokenStore.readRefreshToken(refreshToken);
+		oauth2AccessToken = tokenStore.readAccessToken(accessToken);
+		
+		assertTrue(oauth2AccessToken == null);
+		assertTrue(oauth2RefreshToken == null);
 		assertTrue(approvals.isEmpty());
 		
 		result = mvc.perform(get("/clients/list")

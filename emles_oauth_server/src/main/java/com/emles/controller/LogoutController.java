@@ -3,6 +3,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -31,7 +32,13 @@ public class LogoutController {
     	if (authorization != null && authorization.contains("Bearer")) {
     		String tokenId = authorization.substring("Bearer".length() + 1);
     		OAuth2AccessToken oauthAccessToken = tokenStore.readAccessToken(tokenId);
-    		tokenStore.removeAccessToken(oauthAccessToken);
+    		if (oauthAccessToken != null) {
+    			OAuth2RefreshToken refreshToken = oauthAccessToken.getRefreshToken();
+    			if (refreshToken != null) {
+    				tokenStore.removeRefreshToken(refreshToken);
+    			}
+    			tokenStore.removeAccessToken(oauthAccessToken);
+    		}
     		return ResponseEntity.noContent().build();
     	}
     	return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON).build();
