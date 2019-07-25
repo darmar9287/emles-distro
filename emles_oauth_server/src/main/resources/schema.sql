@@ -42,9 +42,9 @@ CREATE TABLE authority (
   authority varchar(255),
   primary key (id)
 );
-drop table if exists credentials;
+drop table if exists app_user;
 
-CREATE TABLE credentials (
+CREATE TABLE app_user (
   id  integer,
   enabled BOOLEAN not null,
   name varchar(255) not null,
@@ -52,9 +52,9 @@ CREATE TABLE credentials (
   version integer,
   primary key (id)
 );
-drop table if exists credentials_authorities;
-CREATE TABLE credentials_authorities (
-  credentials_id bigint not null,
+drop table if exists app_user_authorities;
+CREATE TABLE app_user_authorities (
+  app_user_id bigint not null,
   authorities_id bigint not null
 );
 drop table if exists oauth_code;

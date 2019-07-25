@@ -2,20 +2,20 @@ package com.emles.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.emles.model.Credentials;
+import com.emles.model.AppUser;
 
 /**
  * Repository for Credentials class.
  * @author Dariusz Kulig
  *
  */
-public interface CredentialRepository
-    extends JpaRepository<Credentials, Long> {
+public interface AppUserRepository
+    extends JpaRepository<AppUser, Long> {
 
     /**
      * Method for finding credentials by name.
      * @param name - credentials name.
      * @return found credentials.
      */
-    Credentials findByName(String name);
+    AppUser findByName(String name);
 }

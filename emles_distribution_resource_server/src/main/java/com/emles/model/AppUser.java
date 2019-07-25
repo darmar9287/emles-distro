@@ -13,13 +13,13 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Credentials model.
+ * AppUser model.
  * @author Dariusz Kulig
  *
  */
 @Entity
-@Table(name = "credentials")
-public class Credentials implements Serializable {
+@Table(name = "app_user")
+public class AppUser implements Serializable {
 
     /**
      * serialVersionUID - unique value needed for serialization.
