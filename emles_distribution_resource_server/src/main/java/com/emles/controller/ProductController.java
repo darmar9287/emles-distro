@@ -33,7 +33,7 @@ public class ProductController {
     @GetMapping("/search/")
     @PreAuthorize("hasRole('ROLE_PRODUCT_ADMIN')")
     public Product findByName(@RequestParam("name") String name) {
-        return productRepository.findByNameLike("%" + name + "%");
+        return productRepository.findByProductName(name);
     }
     @GetMapping("/products")
     @PreAuthorize("hasRole('ROLE_PRODUCT_ADMIN')")
