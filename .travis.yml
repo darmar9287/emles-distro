@@ -8,6 +8,6 @@ services:
 before_script: pip install docker-compose
 
 script:
-  - docker-compose run auth_server sh -c "mvn clean test"
+  - docker-compose run authserver sh -c "mvn clean test"
   - docker-compose run distribution_res_server sh -c "mvn clean test"
 

@@ -6,7 +6,7 @@ services:
       - ./postgres_scripts/db_creation.sql:/docker-entrypoint-initdb.d/1-init.sql
   redis:
     image: 'redis:latest'
-  auth_server:
+  authserver:
     build: ./emles_oauth_server
     volumes:
       - ./emles_oauth_server:/app
@@ -42,4 +42,4 @@ services:
     depends_on:
       - postgres
       - redis
-      - auth_server
+      - authserver
