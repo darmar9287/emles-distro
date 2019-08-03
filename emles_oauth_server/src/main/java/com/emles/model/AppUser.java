@@ -1,5 +1,7 @@
 package com.emles.model;
 
+import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -7,9 +9,18 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Version;
+import javax.validation.Valid;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
+
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -31,6 +42,7 @@ public class AppUser implements Serializable {
     */
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "user_id")
     private Long id;
 
     /**
@@ -45,12 +57,20 @@ public class AppUser implements Serializable {
     @NotEmpty
     private String name;
 
-    /**
-     * password - field containing hash of user.
-     */
-    @NotEmpty
-    private String password;
+    @Embedded
+    @Valid
+    @JsonView(Views.Internal.class)
+    private Passwords passwords;
 
+    @Column(name = "last_password_reset_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    @JsonIgnore
+    private Date lastPasswordResetDate;
+    
+    @Email(message = "invalid email address")
+    @Column(name = "email")
+    private String email;
+    
     /**
      * authorities - list of granted authorities for a given user.
      */
@@ -115,7 +135,7 @@ public class AppUser implements Serializable {
      * @return password string value
      */
     public String getPassword() {
-        return password;
+        return this.passwords.getPassword();
     }
 
     /**
@@ -123,7 +143,23 @@ public class AppUser implements Serializable {
      * @param pass - password string value.
      */
     public void setPassword(String pass) {
-        this.password = pass;
+        this.passwords.setPassword(pass);
+    }
+    
+    /**
+     * Getter for password confirmation field.
+     * @return password string value
+     */
+    public String getPasswordConfirmation() {
+        return this.passwords.getPasswordConfirmation();
+    }
+
+    /**
+     * Setter for password confirmation field.
+     * @param pass - password string value.
+     */
+    public void setPasswordConfirmation(String pass) {
+        this.passwords.setPasswordConfirmation(pass);
     }
 
     /**
@@ -157,4 +193,28 @@ public class AppUser implements Serializable {
     public void setEnabled(boolean en) {
         this.enabled = en;
     }
+
+	public Passwords getPasswords() {
+		return passwords;
+	}
+
+	public void setPasswords(Passwords passwords) {
+		this.passwords = passwords;
+	}
+
+	public Date getLastPasswordResetDate() {
+		return lastPasswordResetDate;
+	}
+
+	public void setLastPasswordResetDate(Date lastPasswordResetDate) {
+		this.lastPasswordResetDate = lastPasswordResetDate;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
 }
