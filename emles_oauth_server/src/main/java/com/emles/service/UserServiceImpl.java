@@ -15,6 +15,7 @@ import org.springframework.validation.Errors;
 import com.emles.model.AppUser;
 import com.emles.model.PasswordResetToken;
 import com.emles.model.Passwords;
+import com.emles.model.UserPasswords;
 import com.emles.repository.AppUserRepository;
 import com.emles.repository.PasswordTokenRepository;
 import com.emles.utils.Utils;
@@ -118,5 +119,20 @@ public class UserServiceImpl implements UserService {
 				errorMessages.add(error.getDefaultMessage());
 			});
 		}
+	}
+
+	@Override
+	public void checkIfOldPasswordMatches(AppUser signedIn, String oldPassword, List<String> errorMessages) {
+		if (!passwordEncoder.matches(oldPassword, signedIn.getPassword())) {
+			errorMessages.add(Utils.oldPasswordDoesNotMatch);
+		}
+	}
+
+	@Transactional
+	public void updateUserPassword(AppUser signedIn, UserPasswords passwords) {
+		String encryptedPassword = passwordEncoder.encode(passwords.getNewPassword());
+		signedIn.setPassword(encryptedPassword);
+		userRepository.save(signedIn);
+		
 	}
 }
