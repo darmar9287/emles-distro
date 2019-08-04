@@ -45,16 +45,18 @@ CREATE TABLE authority (
 drop table if exists app_user CASCADE;
 
 CREATE TABLE app_user (
-  id  integer,
+  user_id  integer,
   enabled BOOLEAN not null,
   name varchar(255) not null,
   password varchar(255) not null,
   version integer,
-  primary key (id)
+  last_password_reset_date TIMESTAMP DEFAULT Now(),
+  email VARCHAR(255) not null,
+  primary key (user_id)
 );
 drop table if exists app_user_authorities CASCADE;
 CREATE TABLE app_user_authorities (
-  app_user_id bigint not null,
+  app_user_user_id bigint not null,
   authorities_id bigint not null
 );
 drop table if exists oauth_code CASCADE;
@@ -70,6 +72,18 @@ create table oauth_approvals (
     expiresAt TIMESTAMP(0),
     lastModifiedAt TIMESTAMP(0)
 );
+
+drop table if exists password_reset_token CASCADE;
+create table password_reset_token (
+  id integer not null,
+  user_id integer not null,
+  expiry_date TIMESTAMP not null,
+  token VARCHAR(255) not null,
+  primary key (id)
+);
+
+ALTER TABLE password_reset_token
+    ADD CONSTRAINT user_id FOREIGN KEY (user_id) REFERENCES app_user(user_id);
 
 DROP TABLE IF EXISTS customer CASCADE;
 CREATE TABLE customer (
@@ -133,5 +147,5 @@ ALTER TABLE order_detail
 
 
 ALTER TABLE orders
-    ADD CONSTRAINT app_user_id FOREIGN KEY (app_user_id) REFERENCES app_user(id);
+    ADD CONSTRAINT app_user_id FOREIGN KEY (app_user_id) REFERENCES app_user(user_id);
 

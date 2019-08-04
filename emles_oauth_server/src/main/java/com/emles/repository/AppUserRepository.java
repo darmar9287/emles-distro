@@ -13,9 +13,16 @@ public interface AppUserRepository
     extends JpaRepository<AppUser, Long> {
 
     /**
-     * Method for finding credentials by name.
-     * @param name - credentials name.
-     * @return found credentials.
+     * Method for finding app user by name.
+     * @param name - user name.
+     * @return found user entity.
      */
     AppUser findByName(String name);
+    
+    /**
+     * Method for finding app user by email.
+     * @param email - user email.
+     * @return found user entity.
+     */
+    AppUser findByEmail(String email);
 }
