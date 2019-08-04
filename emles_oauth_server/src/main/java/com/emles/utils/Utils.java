@@ -28,6 +28,14 @@ public final class Utils {
 	public static final String passwordChangedSuccessMsg = "Your password has been changed.";
 
 	public static final String passwordsNotEqualMsg = "Passwords are not equal.";
+
+	public static final String oldPasswordInvalidMsg = "Old password is invalid. " + passwordRequirementsMsg;
+
+	public static final String newPasswordInvalidMsg = "New password is invalid. " + passwordRequirementsMsg;
+
+	public static final String newPasswordConfirmationInvalidMsg = "New password confirmation is invalid. " + passwordRequirementsMsg;
+
+	public static final String oldPasswordDoesNotMatch = "Old password does not match";
 	
     /**
      * Method used to encode user password.

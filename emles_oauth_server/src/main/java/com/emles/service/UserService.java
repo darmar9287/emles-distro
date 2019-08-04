@@ -7,6 +7,7 @@ import org.springframework.validation.Errors;
 
 import com.emles.model.AppUser;
 import com.emles.model.Passwords;
+import com.emles.model.UserPasswords;
 
 public interface UserService {
 
@@ -29,4 +30,8 @@ public interface UserService {
 	void updateUserPasswordWithResetToken(AppUser user, Passwords passwords, String token);
 
 	void checkOtherValidationErrors(Errors errors, List<String> errorMessages);
+
+	void checkIfOldPasswordMatches(AppUser signedIn, String oldPassword, List<String> errorMessages);
+
+	void updateUserPassword(AppUser signedIn, UserPasswords passwords);
 }
