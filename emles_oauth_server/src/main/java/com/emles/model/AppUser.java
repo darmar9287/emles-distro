@@ -68,7 +68,7 @@ public class AppUser implements Serializable {
     private Date lastPasswordResetDate;
     
     @Email(message = "invalid email address")
-    @Column(name = "email")
+    @NotEmpty
     private String email;
     
     /**

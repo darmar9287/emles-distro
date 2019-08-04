@@ -34,7 +34,8 @@ public class RegistrationController {
 	@RequestMapping(value = "/forgot_password", method = RequestMethod.POST)
 	public ResponseEntity<?> resetPassword(HttpServletRequest request, @RequestBody String email) {
 		Map<String, Object> responseMap = new HashMap<>();
-		AppUser user = userService.findByEmail(email);
+		AppUser user = userService.findByEmail(email.replace("\"", ""));
+		System.out.println(user);
 		if (user == null) {
 			responseMap.put("error", Utils.invalidEmailAddressMsg);
 			return ResponseEntity.unprocessableEntity().body(responseMap);

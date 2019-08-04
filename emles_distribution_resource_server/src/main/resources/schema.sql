@@ -147,5 +147,5 @@ ALTER TABLE order_detail
 
 
 ALTER TABLE orders
-    ADD CONSTRAINT app_user_id FOREIGN KEY (app_user_id) REFERENCES app_user(id);
+    ADD CONSTRAINT app_user_id FOREIGN KEY (app_user_id) REFERENCES app_user(user_id);
 

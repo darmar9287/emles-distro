@@ -75,7 +75,7 @@ create table oauth_approvals (
 
 drop table if exists password_reset_token CASCADE;
 create table password_reset_token (
-  id integer not null,
+  id serial not null,
   user_id integer not null,
   expiry_date TIMESTAMP not null,
   token VARCHAR(255) not null,

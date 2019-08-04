@@ -17,6 +17,7 @@ import com.emles.model.PasswordResetToken;
 import com.emles.model.Passwords;
 import com.emles.repository.AppUserRepository;
 import com.emles.repository.PasswordTokenRepository;
+import com.emles.utils.Utils;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -71,7 +72,7 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public void checkEqualityOfPasswords(String pass1, String pass2, List<String> errorMessages) {
 		if (!checkPasswordsAreEqual(pass1, pass2)) {
-			errorMessages.add("Passwords are not equal.");
+			errorMessages.add(Utils.passwordsNotEqualMsg);
 		}
 	}
 
