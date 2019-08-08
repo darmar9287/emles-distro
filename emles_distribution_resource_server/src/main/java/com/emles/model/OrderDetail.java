@@ -81,3 +81,4 @@ public class OrderDetail implements Serializable {
 		this.quantity = quantity;
 	}
 }
+

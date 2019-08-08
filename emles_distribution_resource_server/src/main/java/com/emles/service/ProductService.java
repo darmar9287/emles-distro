@@ -16,5 +16,5 @@ public interface ProductService {
 	
 	public List<Product> showProducts();
 	
-	public Product findProductByName(String name);
+	public Product findProductByName(String name);	
 }
