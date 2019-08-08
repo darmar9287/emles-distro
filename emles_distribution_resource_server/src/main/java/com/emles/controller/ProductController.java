@@ -28,12 +28,6 @@ public class ProductController {
         return productService.findProductById(id)
                                  .orElse(null);
     }
-
-    @GetMapping("/search/")
-    @PreAuthorize("hasRole('ROLE_PRODUCT_ADMIN')")
-    public Product findByName(@RequestParam("name") String name) {
-        return productService.findProductByName(name);
-    }
     
     @GetMapping("/products")
     @PreAuthorize("hasRole('ROLE_PRODUCT_ADMIN')")

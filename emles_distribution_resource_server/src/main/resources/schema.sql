@@ -125,26 +125,20 @@ ALTER TABLE customer
 ALTER TABLE ONLY order_detail
     ADD CONSTRAINT order_detail_pkey PRIMARY KEY (order_detail_id);
 
-
 ALTER TABLE purchase_order
     ADD CONSTRAINT purchase_order_pkey PRIMARY KEY (purchase_order_id);
-
 
 ALTER TABLE product
     ADD CONSTRAINT product_pkey PRIMARY KEY (product_id);
 
-
 ALTER TABLE purchase_order
     ADD CONSTRAINT customer_id FOREIGN KEY (customer_id) REFERENCES customer(customer_id);
 
-
 ALTER TABLE order_detail
     ADD CONSTRAINT purchase_order_id FOREIGN KEY (purchase_order_id) REFERENCES purchase_order(purchase_order_id);
-
-
+    
 ALTER TABLE order_detail
     ADD CONSTRAINT product_id FOREIGN KEY (product_id) REFERENCES product(product_id);
-
 
 ALTER TABLE purchase_order
     ADD CONSTRAINT app_user_id FOREIGN KEY (app_user_id) REFERENCES app_user(user_id);

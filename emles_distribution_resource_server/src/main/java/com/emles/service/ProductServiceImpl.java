@@ -3,10 +3,8 @@ package com.emles.service;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.emles.model.Product;
 import com.emles.repository.ProductRepository;
 
@@ -24,32 +22,17 @@ public class ProductServiceImpl implements ProductService {
 
 	@Override
 	public void deleteProduct(Product product) {
-		// TODO Auto-generated method stub
+		productRepository.delete(product);
 
 	}
 
 	@Override
-	public void updateProduct(Product producy) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public List<Product> showProducts() {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Product> showProducts() {		
+		return productRepository.findAll();
 	}
 
 	@Override
 	public Optional<Product> findProductById(long productId) {
-		// TODO Auto-generated method stub
-		return null;
+		return productRepository.findById(productId);
 	}
-
-	@Override
-	public Product findProductByName(String name) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

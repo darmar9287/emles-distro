@@ -9,12 +9,8 @@ public interface ProductService {
 	public void addProduct(Product product);
 	
 	public void deleteProduct(Product product);
-	
-	public void updateProduct(Product product);
-		
+			
 	public Optional<Product> findProductById(long productId);
 	
 	public List<Product> showProducts();
-	
-	public Product findProductByName(String name);
 }

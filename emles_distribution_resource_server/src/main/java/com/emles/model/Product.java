@@ -11,6 +11,7 @@ import java.util.List;
 @Table(name="product")
 public class Product implements Serializable{
 
+	
 	/**
 	 * 
 	 */
@@ -28,7 +29,6 @@ public class Product implements Serializable{
 	private Long productQuantityLeft;
 	
 	@Column(name="product_price", nullable=false)
-	@Digits(integer = 10, fraction = 2)
 	private BigDecimal productPrice;
 	
 	public Product(String productName, Long productQuantityLeft, BigDecimal productPrice) {
