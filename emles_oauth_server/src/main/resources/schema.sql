@@ -38,20 +38,21 @@ create table oauth_refresh_token(
 );
 drop table if exists authority CASCADE;
 CREATE TABLE authority (
-  id  integer,
+  id  serial,
   authority varchar(255),
   primary key (id)
 );
 drop table if exists app_user CASCADE;
 
 CREATE TABLE app_user (
-  user_id  integer,
+  user_id  serial,
   enabled BOOLEAN not null,
   name varchar(255) not null,
   password varchar(255) not null,
   version integer,
   last_password_reset_date TIMESTAMP DEFAULT Now(),
   email VARCHAR(255) not null,
+  phone VARCHAR(255) not null,
   primary key (user_id)
 );
 drop table if exists app_user_authorities CASCADE;

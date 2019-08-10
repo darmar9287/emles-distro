@@ -13,7 +13,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Version;
 import javax.validation.Valid;
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -67,9 +66,10 @@ public class AppUser implements Serializable {
     @JsonIgnore
     private Date lastPasswordResetDate;
     
-    @Email(message = "invalid email address")
-    @NotEmpty
-    private String email;
+    @Embedded
+    @Valid
+    @JsonView(Views.Public.class)
+    private UserData userData;
     
     /**
      * authorities - list of granted authorities for a given user.
@@ -211,10 +211,26 @@ public class AppUser implements Serializable {
 	}
 
 	public String getEmail() {
-		return email;
+		return userData.getEmail();
 	}
 
 	public void setEmail(String email) {
-		this.email = email;
+		this.userData.setEmail(email);
+	}
+	
+	public String getPhoneNumber() {
+		return userData.getPhoneNumber();
+	}
+	
+	public void setPhoneNumber(String phoneNumber) {
+		userData.setPhoneNumber(phoneNumber);
+	}
+
+	public UserData getUserData() {
+		return userData;
+	}
+
+	public void setUserData(UserData userData) {
+		this.userData = userData;
 	}
 }

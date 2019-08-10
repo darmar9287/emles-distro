@@ -3,10 +3,12 @@ package com.emles.service;
 import java.util.List;
 import java.util.Optional;
 
+
 import org.springframework.validation.Errors;
 
 import com.emles.model.AppUser;
 import com.emles.model.Passwords;
+import com.emles.model.UserData;
 import com.emles.model.UserPasswords;
 
 public interface UserService {
@@ -34,4 +36,10 @@ public interface UserService {
 	void checkIfOldPasswordMatches(AppUser signedIn, String oldPassword, List<String> errorMessages);
 
 	void updateUserPassword(AppUser signedIn, UserPasswords passwords);
+
+	void validateUniqueValuesForUser(AppUser user, List<String> errorMessages);
+	
+	void validateUniqueValuesForUserData(UserData userData, List<String> errorMessages, AppUser signedIn);
+
+	void updateUserData(AppUser user, UserData userData);
 }

@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import org.springframework.validation.Errors;
 import com.emles.model.AppUser;
 import com.emles.model.PasswordResetToken;
 import com.emles.model.Passwords;
+import com.emles.model.UserData;
 import com.emles.model.UserPasswords;
 import com.emles.repository.AppUserRepository;
 import com.emles.repository.PasswordTokenRepository;
@@ -44,7 +46,7 @@ public class UserServiceImpl implements UserService {
 
 	@Transactional
 	public AppUser findByEmail(String email) {
-		return userRepository.findByEmail(email);
+		return userRepository.findByUserDataEmail(email);
 	}
 
 	@Transactional
@@ -103,13 +105,17 @@ public class UserServiceImpl implements UserService {
 		passwordTokenRepository.delete(passToken);
 	}
 
-	private boolean isTokenExpired(PasswordResetToken passToken) {
-		Calendar cal = Calendar.getInstance();
-		return (passToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0;
+	@Transactional
+	public void updateUserData(AppUser user, UserData userData) {
+		user.setUserData(userData);
+		userRepository.save(user);
 	}
 
-	private boolean checkPasswordsAreEqual(String password, String passwordConfirmation) {
-		return password.equals(passwordConfirmation);
+	@Transactional
+	public void validateUniqueValuesForUser(AppUser user, List<String> errorMessages) {
+		checkIfUserNameExistsInDb(user, errorMessages);
+		checkIfEmailExistsInDb(user.getEmail(), errorMessages);
+		checkIfPhoneNumberExistsInDb(user.getPhone(), errorMessages);
 	}
 
 	@Override
@@ -134,5 +140,51 @@ public class UserServiceImpl implements UserService {
 		signedIn.setPassword(encryptedPassword);
 		userRepository.save(signedIn);
 		
+	}
+
+	@Transactional
+	public void validateUniqueValuesForUserData(UserData userData, List<String> errorMessages,
+			AppUser signedIn) {
+		String userDataPhone = userData.getPhone().replaceAll("\\-", "");
+		String signedInUserDataPhone = signedIn.getPhone().replaceAll("\\-", "");
+		if (!userDataPhone.equals(signedInUserDataPhone)) {
+			checkIfPhoneNumberExistsInDb(userDataPhone, errorMessages);
+		}
+		if (!userData.getEmail().equals(signedIn.getEmail())) {
+			checkIfEmailExistsInDb(userData.getEmail(), errorMessages);
+		}
+	}
+
+	@Transactional
+	private void checkIfPhoneNumberExistsInDb(String phoneNumber, List<String> errorMessages) {
+		AppUser found = userRepository.findByUserDataPhone(phoneNumber);
+		if (found != null) {
+			errorMessages.add(Utils.phoneNumberExistsMsg);
+		}
+	}
+
+	@Transactional
+	private void checkIfEmailExistsInDb(String email, List<String> errorMessages) {
+		AppUser found = userRepository.findByUserDataEmail(email);
+		if (found != null) {
+			errorMessages.add(Utils.emailExistsMsg);
+		}
+	}
+
+	@Transactional
+	private void checkIfUserNameExistsInDb(AppUser user, List<String> errorMessages) {
+		AppUser found = userRepository.findByName(user.getName());
+		if (found != null) {
+			errorMessages.add(Utils.userNameExistsMsg);
+		}
+	}
+	
+	private boolean isTokenExpired(PasswordResetToken passToken) {
+		Calendar cal = Calendar.getInstance();
+		return (passToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0;
+	}
+
+	private boolean checkPasswordsAreEqual(String password, String passwordConfirmation) {
+		return password.equals(passwordConfirmation);
 	}
 }
