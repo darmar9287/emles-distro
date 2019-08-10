@@ -24,5 +24,12 @@ public interface AppUserRepository
      * @param email - user email.
      * @return found user entity.
      */
-    AppUser findByEmail(String email);
+    AppUser findByUserDataEmail(String email);
+    
+    /**
+     * Method for finding app user by phone number.
+     * @param phone - user phone number.
+     * @return found user entity.
+     */
+    AppUser findByUserDataPhone(String phone);
 }

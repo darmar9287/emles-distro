@@ -38,20 +38,21 @@ create table oauth_refresh_token(
 );
 drop table if exists authority CASCADE;
 CREATE TABLE authority (
-  id  integer,
+  id  serial,
   authority varchar(255),
   primary key (id)
 );
 drop table if exists app_user CASCADE;
 
 CREATE TABLE app_user (
-  user_id  integer,
+  user_id  serial,
   enabled BOOLEAN not null,
   name varchar(255) not null,
   password varchar(255) not null,
   version integer,
   last_password_reset_date TIMESTAMP DEFAULT Now(),
   email VARCHAR(255) not null,
+  phone VARCHAR(255) not null,
   primary key (user_id)
 );
 drop table if exists app_user_authorities CASCADE;
@@ -75,7 +76,7 @@ create table oauth_approvals (
 
 drop table if exists password_reset_token CASCADE;
 create table password_reset_token (
-  id integer not null,
+  id serial not null,
   user_id integer not null,
   expiry_date TIMESTAMP not null,
   token VARCHAR(255) not null,
@@ -87,7 +88,7 @@ ALTER TABLE password_reset_token
 
 DROP TABLE IF EXISTS customer CASCADE;
 CREATE TABLE customer (
-    customer_id integer NOT NULL,
+    customer_id serial NOT NULL,
     customer_name text[] NOT NULL,
     customer_phone text[],
     customer_address text[]
@@ -95,7 +96,7 @@ CREATE TABLE customer (
 
 DROP TABLE IF EXISTS orders CASCADE;
 CREATE TABLE orders (
-    order_id integer NOT NULL,
+    order_id serial NOT NULL,
     order_date date NOT NULL,
     customer_id integer NOT NULL,
     app_user_id integer NOT NULL
@@ -103,7 +104,7 @@ CREATE TABLE orders (
 
 DROP TABLE IF EXISTS order_detail CASCADE;
 CREATE TABLE order_detail (
-    order_detail_id integer NOT NULL,
+    order_detail_id serial NOT NULL,
     order_id integer NOT NULL,
     product_id integer NOT NULL,
     quantity integer NOT NULL
@@ -111,7 +112,7 @@ CREATE TABLE order_detail (
 
 DROP TABLE IF EXISTS product CASCADE;
 CREATE TABLE product (
-    product_id integer NOT NULL,
+    product_id serial NOT NULL,
     product_name text NOT NULL,
     product_price numeric(10,2) NOT NULL,
     product_quantity_left integer NOT NULL

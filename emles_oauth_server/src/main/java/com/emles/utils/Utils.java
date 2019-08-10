@@ -2,6 +2,9 @@ package com.emles.utils;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2RefreshToken;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 
 /**
  * Utils class contains helper methods used in other packages/classes.
@@ -23,6 +26,8 @@ public final class Utils {
 	
 	public static final String invalidEmailAddressMsg = "Invalid email address.";
 	
+	public static final String invalidPhoneNumberMsg = "Invalid phone number.";
+	
 	public static final String failedToChangeForgottenPassMsg = "Cannot reset your password. Try again later or reset password again.";
 	
 	public static final String passwordChangedSuccessMsg = "Your password has been changed.";
@@ -37,6 +42,18 @@ public final class Utils {
 
 	public static final String oldPasswordDoesNotMatch = "Old password does not match";
 	
+	public static final String updateUserDataSuccessMsg = "Your data has been updated.";
+	
+	public static final String emailExistsMsg = "Email already exists";
+	
+	public static final String phoneNumberExistsMsg = "Phone number already exists";
+	
+	public static final String userNameExistsMsg = "User name already exists";
+
+	public static final Object changedUserDataMsg = "User data has been changed";
+
+	public static final Object userDoesNotExistMsg = "User was not found";
+	
     /**
      * Method used to encode user password.
      * @param password - password to be encoded.
@@ -49,4 +66,12 @@ public final class Utils {
 
         return encodedPassword;
     }
+    
+    public static void removeTokens(OAuth2AccessToken accessToken, TokenStore tokenStore) {
+		OAuth2RefreshToken refreshToken = accessToken.getRefreshToken();
+		if (refreshToken != null) {
+			tokenStore.removeRefreshToken(refreshToken);
+		}
+		tokenStore.removeAccessToken(accessToken);
+	}
 }
