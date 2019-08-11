@@ -7,10 +7,9 @@ import com.emles.model.Product;
 public interface ProductService {
 	
 	public void addProduct(Product product);
-	
-	public void deleteProduct(Product product);
-			
+				
 	public Optional<Product> findProductById(long productId);
 	
 	public List<Product> showProducts();
+
 }
