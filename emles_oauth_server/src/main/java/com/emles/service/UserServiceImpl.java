@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ import com.emles.model.PasswordResetToken;
 import com.emles.model.Passwords;
 import com.emles.model.UserData;
 import com.emles.model.UserPasswords;
+import com.emles.model.projection.UserSimplified;
 import com.emles.repository.AccountActivationTokenRepository;
 import com.emles.repository.AppUserRepository;
 import com.emles.repository.AuthorityRepository;
@@ -126,8 +129,8 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public void validateUniqueValuesForUser(AppUser user, List<String> errorMessages) {
 		checkIfUserNameExistsInDb(user, errorMessages);
-		checkIfEmailExistsInDb(user.getEmail(), errorMessages);
-		checkIfPhoneNumberExistsInDb(user.getPhone(), errorMessages);
+		checkIfEmailExistsInDb(user.getUserData().getEmail(), errorMessages);
+		checkIfPhoneNumberExistsInDb(user.getUserData().getPhone(), errorMessages);
 	}
 
 	@Override
@@ -231,6 +234,16 @@ public class UserServiceImpl implements UserService {
 		Authority userRoleAuthority = authorityRepository.findByAuthority("ROLE_USER");
 		userRoles.add(userRoleAuthority);
 		this.createUser(user, userRoles);
+	}
+	
+	@Transactional
+	public Page<UserSimplified> listUsers(Pageable pageable) {
+		return userRepository.findAllBy(pageable);
+	}
+	
+	@Transactional
+	public UserSimplified findSimplifiedByName(String name) {
+		return userRepository.findSimplifiedByName(name);
 	}
 
 	@Transactional

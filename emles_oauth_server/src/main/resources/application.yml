@@ -22,3 +22,6 @@ spring:
 # --- server
 server:
   port: 8081
+config:
+  pagination:
+    per_page: 10
