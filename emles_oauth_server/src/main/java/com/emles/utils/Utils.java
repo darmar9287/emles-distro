@@ -50,9 +50,24 @@ public final class Utils {
 	
 	public static final String userNameExistsMsg = "User name already exists";
 
-	public static final Object changedUserDataMsg = "User data has been changed";
+	public static final String changedUserDataMsg = "User data has been changed";
 
-	public static final Object userDoesNotExistMsg = "User was not found";
+	public static final String userDoesNotExistMsg = "User was not found";
+
+	public static final String signUpSuccessMsg = "You have signed up successfully.";
+	
+	public static final String userCreatedSuccessMsg = "User has been created successfully.";
+
+	public static final String invalidActivationTokenMsg = "Invalid activation token.";
+
+	public static final String accountActivatedMsg = "Your account has been activated.";
+
+	public static final String userNameRequirementMsg = "Username can contain only chars like numbers, underscores and letters."
+			+ "Its length must be between 4 and 50 characters";
+
+	public static final String userNameRegex = "^[A-Za-z0-9_]{4,50}$";
+
+	public static final String phoneNumberRegex = "^(\\d{3}\\-?){2}\\d{3}$";
 	
     /**
      * Method used to encode user password.

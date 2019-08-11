@@ -45,7 +45,7 @@ CREATE TABLE authority (
 drop table if exists app_user CASCADE;
 
 CREATE TABLE app_user (
-  user_id  serial,
+  user_id  SERIAL not null,
   enabled BOOLEAN not null,
   name varchar(255) not null,
   password varchar(255) not null,
@@ -83,5 +83,16 @@ create table password_reset_token (
   primary key (id)
 );
 
+drop table if exists account_activation_token CASCADE;
+create table account_activation_token (
+  id serial not null,
+  user_id integer not null,
+  token VARCHAR(255) not null,
+  primary key (id)
+);
+
 ALTER TABLE password_reset_token
     ADD CONSTRAINT user_id FOREIGN KEY (user_id) REFERENCES app_user(user_id);
+
+ALTER TABLE account_activation_token
+    ADD CONSTRAINT user_id FOREIGN KEY (user_id) REFERENCES app_user(user_id);    

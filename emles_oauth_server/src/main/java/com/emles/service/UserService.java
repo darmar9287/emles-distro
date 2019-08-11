@@ -2,11 +2,14 @@ package com.emles.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import javax.validation.Valid;
 
 import org.springframework.validation.Errors;
 
 import com.emles.model.AppUser;
+import com.emles.model.Authority;
 import com.emles.model.Passwords;
 import com.emles.model.UserData;
 import com.emles.model.UserPasswords;
@@ -16,7 +19,7 @@ public interface UserService {
 	Optional<AppUser> findById(long userId);
 
 	AppUser findByName(String name);
-	
+
 	AppUser findByEmail(String email);
 
 	boolean checkUsernameExists(String userName);
@@ -38,8 +41,20 @@ public interface UserService {
 	void updateUserPassword(AppUser signedIn, UserPasswords passwords);
 
 	void validateUniqueValuesForUser(AppUser user, List<String> errorMessages);
-	
+
 	void validateUniqueValuesForUserData(UserData userData, List<String> errorMessages, AppUser signedIn);
 
 	void updateUserData(AppUser user, UserData userData);
+
+	AppUser createUser(AppUser user, Set<Authority> userRoles);
+
+	AppUser createUser(AppUser user);
+
+	void createAccountActivationTokenForUser(AppUser user, String token);
+
+	boolean validateAccountActivationToken(long id, String token);
+
+	boolean toggleEnableUser(long userId);
+
+	void saveNewUserWithStandardRole(@Valid AppUser user);
 }

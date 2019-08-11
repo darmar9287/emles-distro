@@ -1,11 +1,13 @@
 package com.emles.service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,12 +15,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Errors;
 
+import com.emles.model.AccountActivationToken;
 import com.emles.model.AppUser;
+import com.emles.model.Authority;
 import com.emles.model.PasswordResetToken;
 import com.emles.model.Passwords;
 import com.emles.model.UserData;
 import com.emles.model.UserPasswords;
+import com.emles.repository.AccountActivationTokenRepository;
 import com.emles.repository.AppUserRepository;
+import com.emles.repository.AuthorityRepository;
 import com.emles.repository.PasswordTokenRepository;
 import com.emles.utils.Utils;
 
@@ -33,6 +39,12 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private PasswordTokenRepository passwordTokenRepository;
+	
+	@Autowired
+	private AuthorityRepository authorityRepository;
+	
+	@Autowired
+	private AccountActivationTokenRepository accountActivationTokenRepository;
 
 	@Transactional
 	public Optional<AppUser> findById(long userId) {
@@ -138,8 +150,7 @@ public class UserServiceImpl implements UserService {
 	public void updateUserPassword(AppUser signedIn, UserPasswords passwords) {
 		String encryptedPassword = passwordEncoder.encode(passwords.getNewPassword());
 		signedIn.setPassword(encryptedPassword);
-		userRepository.save(signedIn);
-		
+		userRepository.save(signedIn);	
 	}
 
 	@Transactional
@@ -153,6 +164,73 @@ public class UserServiceImpl implements UserService {
 		if (!userData.getEmail().equals(signedIn.getEmail())) {
 			checkIfEmailExistsInDb(userData.getEmail(), errorMessages);
 		}
+	}
+	
+	@Transactional
+	public AppUser createUser(AppUser user, Set<Authority> userRoles) {
+		String encryptedPassword = passwordEncoder.encode(user.getPassword());
+        user.setPassword(encryptedPassword);
+        user.setAuthorities(new ArrayList<Authority>());
+        user.setEnabled(false);
+        user.setLastPasswordResetDate(Date.from(Instant.now()));
+        
+        for (Authority ur : userRoles) {
+            authorityRepository.save(ur);
+        }
+        
+        user.getAuthorities().addAll(userRoles);
+
+        return userRepository.save(user);
+	}
+
+	@Transactional
+	public AppUser createUser(AppUser user) {
+		user.setEnabled(true);
+		for(Authority ur : user.getAuthorities()) {
+			authorityRepository.save(ur);
+		}
+		return userRepository.save(user);
+	}
+
+	@Transactional
+	public void createAccountActivationTokenForUser(AppUser user, String token) {
+		AccountActivationToken myToken = new AccountActivationToken(token, user);
+		accountActivationTokenRepository.save(myToken);
+	}
+
+	@Transactional
+	public boolean validateAccountActivationToken(long id, String token) {
+		AccountActivationToken passToken = 
+    			accountActivationTokenRepository.findByToken(token);
+        if ((passToken == null) || (passToken.getUser()
+            .getId() != id)) {
+            return false;
+        }
+        AppUser tokenUser = passToken.getUser();
+        tokenUser.setEnabled(true);
+        userRepository.save(tokenUser);
+        accountActivationTokenRepository.delete(passToken);
+        return true;
+	}
+
+	@Transactional
+	public boolean toggleEnableUser(long userId) {
+		Optional<AppUser> userOpt = userRepository.findById(userId);
+		if (userOpt.isPresent()) {
+			AppUser user = userOpt.get();
+			user.setEnabled(!user.isEnabled());
+			userRepository.save(user);
+			return true;
+		}
+		return false;
+	}
+	
+	@Transactional
+	public void saveNewUserWithStandardRole(AppUser user) {
+		Set<Authority> userRoles = new HashSet<>();
+		Authority userRoleAuthority = authorityRepository.findByAuthority("ROLE_USER");
+		userRoles.add(userRoleAuthority);
+		this.createUser(user, userRoles);
 	}
 
 	@Transactional

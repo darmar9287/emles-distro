@@ -36,7 +36,10 @@ public class OauthResourcesServerConfiguration extends ResourceServerConfigurerA
     public void configure(HttpSecurity http) throws Exception{
         http
         .authorizeRequests()
-        .antMatchers("/user/forgot_password", "/user/change_forgotten_password")
+        .antMatchers("/user/forgot_password", 
+        		"/user/change_forgotten_password", 
+        		"/user/sign_up",
+        		"/user/validate_user_account")
 		.permitAll()
         .antMatchers(HttpMethod.GET, "/**").access("#oauth2.hasScope('read')")
         .antMatchers(HttpMethod.POST, "/**").access("#oauth2.hasScope('write')")

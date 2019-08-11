@@ -14,7 +14,9 @@ import javax.persistence.TemporalType;
 import javax.persistence.Version;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 
+import com.emles.utils.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 
@@ -40,7 +42,7 @@ public class AppUser implements Serializable {
     * id - credential id field in table.
     */
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id;
 
@@ -54,6 +56,8 @@ public class AppUser implements Serializable {
      * name - user login name.
      */
     @NotEmpty
+    @Pattern(regexp = Utils.userNameRegex, message = Utils.userNameRequirementMsg)
+    @Column(name = "name", unique = true)
     private String name;
 
     @Embedded
@@ -82,6 +86,11 @@ public class AppUser implements Serializable {
      */
     private boolean enabled;
 
+    public AppUser() {
+    	this.passwords = new Passwords();
+    	this.userData = new UserData();
+    }
+    
     /**
      * Getter for credential id.
      * @return id of credential
