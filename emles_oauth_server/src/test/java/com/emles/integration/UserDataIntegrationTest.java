@@ -931,6 +931,102 @@ public class UserDataIntegrationTest {
 		
 		signOut(204, accessToken, oauthAdminClientId);
 	}
+	
+	@Test
+	public void testSignUpAndActivationSuccess() throws Exception {
+
+		String newUserPassword = "h4$h3dPa$$";
+		AppUser newUser = new AppUser();
+		newUser.setEmail("newuser@emles.com");
+		newUser.setName("newuser");
+		newUser.setPassword(newUserPassword);
+		newUser.setPasswordConfirmation(newUserPassword);
+		newUser.setPhone("600600666");
+
+		MvcResult result = sendSignUpRequest(newUser, 200);
+		
+		AppUser found = userRepository.findByName(newUser.getName());
+		
+		AccountActivationToken activationToken = accountActivationRepository.findByUser(found);
+		assertTrue(activationToken != null);
+		
+		result = mvc
+				.perform(post("/user/validate_user_account?id=" + found.getId() + "&token=" + activationToken.getToken())
+						.content(objectMapper.writeValueAsString(newUser))
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200))
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+		
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		assertTrue(responseMap.get("msg").equals(Utils.accountActivatedMsg));
+	}
+	
+	@Test
+	public void testSignUpAndActivationReturns422WhenUserIdIsInvalid() throws Exception {
+
+		String newUserPassword = "h4$h3dPa$$";
+		AppUser newUser = new AppUser();
+		newUser.setEmail("newuser@emles.com");
+		newUser.setName("newuser");
+		newUser.setPassword(newUserPassword);
+		newUser.setPasswordConfirmation(newUserPassword);
+		newUser.setPhone("600600666");
+
+		MvcResult result = sendSignUpRequest(newUser, 200);
+		
+		AppUser found = userRepository.findByName(newUser.getName());
+		
+		AccountActivationToken activationToken = accountActivationRepository.findByUser(found);
+		assertTrue(activationToken != null);
+		
+		result = mvc
+				.perform(post("/user/validate_user_account?id=" + 10000L + "&token=" + activationToken.getToken())
+						.content(objectMapper.writeValueAsString(newUser))
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(422))
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+		
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		assertTrue(responseMap.get("error").equals(Utils.invalidActivationTokenMsg));
+	}
+	
+	@Test
+	public void testSignUpAndActivationReturns422WhenUserTokenIsInvalid() throws Exception {
+
+		String newUserPassword = "h4$h3dPa$$";
+		AppUser newUser = new AppUser();
+		newUser.setEmail("newuser@emles.com");
+		newUser.setName("newuser");
+		newUser.setPassword(newUserPassword);
+		newUser.setPasswordConfirmation(newUserPassword);
+		newUser.setPhone("600600666");
+
+		MvcResult result = sendSignUpRequest(newUser, 200);
+		
+		AppUser found = userRepository.findByName(newUser.getName());
+		
+		AccountActivationToken activationToken = accountActivationRepository.findByUser(found);
+		assertTrue(activationToken != null);
+		
+		result = mvc
+				.perform(post("/user/validate_user_account?id=" + found.getId() + "&token=" + "invalid")
+						.content(objectMapper.writeValueAsString(newUser))
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(422))
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+		
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		assertTrue(responseMap.get("error").equals(Utils.invalidActivationTokenMsg));
+	}
 
 	private MvcResult sendSignUpRequest(AppUser newUser, int expectedStatus) throws Exception, JsonProcessingException {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
