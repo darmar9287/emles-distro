@@ -9,9 +9,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,10 +37,14 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.emles.EmlesOauthServerApplication;
+import com.emles.model.AccountActivationToken;
 import com.emles.model.AppUser;
+import com.emles.model.Authority;
 import com.emles.model.UserData;
 import com.emles.model.UserPasswords;
+import com.emles.repository.AccountActivationTokenRepository;
 import com.emles.repository.AppUserRepository;
+import com.emles.repository.AuthorityRepository;
 import com.emles.utils.Utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,6 +69,12 @@ public class UserDataIntegrationTest {
 
 	@Autowired
 	private AppUserRepository userRepository;
+	
+	@Autowired
+	private AccountActivationTokenRepository accountActivationRepository;
+	
+	@Autowired
+	private AuthorityRepository authorityRepository;
 
 	private String productAdminClientId = "integration_test_product_admin";
 
@@ -100,7 +112,7 @@ public class UserDataIntegrationTest {
 
 	@Test
 	public void testChangePasswordSuccess() throws Exception {
-		AppUser user = userRepository.findById(3L).get();
+		AppUser user = userRepository.findByName("product_admin");
 		String rawPass = "abcd@@@##AA112";
 		String encodedPass = passwordEncoder.encode(rawPass);
 		user.setPassword(encodedPass);
@@ -149,7 +161,7 @@ public class UserDataIntegrationTest {
 
 	@Test
 	public void testChangePasswordReturns422WhenOldPasswordIsInvalid() throws Exception {
-		AppUser user = userRepository.findById(2L).get();
+		AppUser user = userRepository.findByName("resource_admin");
 		String rawPass = "abcd@@@##AA112";
 		String encodedPass = passwordEncoder.encode(rawPass);
 		user.setPassword(encodedPass);
@@ -177,7 +189,7 @@ public class UserDataIntegrationTest {
 
 	@Test
 	public void testChangePasswordReturns422WhenPasswordsDoNotMatch() throws Exception {
-		AppUser user = userRepository.findById(1L).get();
+		AppUser user = userRepository.findByName("oauth_admin");
 		String rawPass = "abcd@@@##AA112";
 		String encodedPass = passwordEncoder.encode(rawPass);
 		user.setPassword(encodedPass);
@@ -205,7 +217,7 @@ public class UserDataIntegrationTest {
 
 	@Test
 	public void testChangePasswordReturns422WhenNewPasswordIsInvalid() throws Exception {
-		AppUser user = userRepository.findById(1L).get();
+		AppUser user = userRepository.findByName("oauth_admin");
 		String rawPass = "abcd@@@##AA112";
 		String encodedPass = passwordEncoder.encode(rawPass);
 		user.setPassword(encodedPass);
@@ -234,7 +246,7 @@ public class UserDataIntegrationTest {
 
 	@Test
 	public void testChangePasswordReturns422WhenNewPasswordConfirmationIsInvalid() throws Exception {
-		AppUser user = userRepository.findById(1L).get();
+		AppUser user = userRepository.findByName("oauth_admin");
 		String rawPass = "abcd@@@##AA112";
 		String encodedPass = passwordEncoder.encode(rawPass);
 		user.setPassword(encodedPass);
@@ -263,7 +275,7 @@ public class UserDataIntegrationTest {
 
 	@Test
 	public void testChangePasswordReturns422WhenAllPasswordsAreInvalid() throws Exception {
-		AppUser user = userRepository.findById(1L).get();
+		AppUser user = userRepository.findByName("oauth_admin");
 		String rawPass = "abcd@@@##AA112";
 		String encodedPass = passwordEncoder.encode(rawPass);
 		user.setPassword(encodedPass);
@@ -295,7 +307,7 @@ public class UserDataIntegrationTest {
 
 	@Test
 	public void testChangePasswordReturns401WhenUserIsNotAuthenticated() throws Exception {
-		AppUser user = userRepository.findById(2L).get();
+		AppUser user = userRepository.findByName("resource_admin");
 		String rawPass = "abcd@@@##AA112";
 		String encodedPass = passwordEncoder.encode(rawPass);
 		user.setPassword(encodedPass);
@@ -314,8 +326,8 @@ public class UserDataIntegrationTest {
 
 	@Test
 	public void testChangePasswordByAdminSuccess() throws Exception {
-		long userId = 2L;
-		AppUser user = userRepository.findById(userId).get();
+		AppUser user = userRepository.findByName("resource_admin");
+		long userId = user.getId();
 		String rawPass = "abcd@@@##AA112";
 		String encodedPass = passwordEncoder.encode(rawPass);
 		user.setPassword(encodedPass);
@@ -636,7 +648,8 @@ public class UserDataIntegrationTest {
 
 	@Test
 	public void testChangeUserDataByAdminSuccess() throws Exception {
-		long userId = 2L;
+		AppUser resourceAdminUser = userRepository.findByName("resource_admin");
+		long userId = resourceAdminUser.getId();
 
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
@@ -665,6 +678,276 @@ public class UserDataIntegrationTest {
 		assertTrue(responseMap.get("msg").equals(Utils.changedUserDataMsg));
 
 		signOut(204, accessToken, oauthAdminClientId);
+	}
+	
+	@Test
+	public void testSignUpSuccess() throws Exception {
+
+		String newUserPassword = "h4$h3dPa$$";
+		AppUser newUser = new AppUser();
+		newUser.setEmail("newuser@emles.com");
+		newUser.setName("newuser");
+		newUser.setPassword(newUserPassword);
+		newUser.setPasswordConfirmation(newUserPassword);
+		newUser.setPhone("600600666");
+		
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "oauth_admin");
+		params.add("password", password);
+
+		MvcResult result = sendSignUpRequest(newUser, 200);
+
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		assertTrue(responseMap.get("msg").equals(Utils.signUpSuccessMsg));
+		
+		AppUser found = userRepository.findByName(newUser.getName());
+		
+		assertTrue(found != null);
+		assertTrue(found.getEmail().equals(newUser.getEmail()));
+		assertTrue(found.getName().equals(newUser.getName()));
+		assertTrue(found.getPhone().equals(newUser.getPhone()));
+		assertTrue(found.getAuthorities().size() == 1);
+		assertTrue(found.getAuthorities().get(0).getAuthority().equals("ROLE_USER"));
+		assertFalse(found.isEnabled());
+		
+		AccountActivationToken activationToken = accountActivationRepository.findByUser(found);
+		assertTrue(activationToken != null);
+	}
+	
+	@Test
+	public void testSignUpReturns422WhenUniquePramsExists() throws Exception {
+
+		String newUserPassword = "h4$h3dPa$$";
+		AppUser newUser = new AppUser();
+		newUser.setEmail("oauth_admin@emles.com");
+		newUser.setName("oauth_admin");
+		newUser.setPassword(newUserPassword);
+		newUser.setPasswordConfirmation(newUserPassword);
+		newUser.setPhone("700700700");
+		
+		MvcResult result = sendSignUpRequest(newUser, 422);
+
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		@SuppressWarnings("unchecked")
+		List<String> errors = (List<String>) responseMap.get("validationErrors");
+
+		assertTrue(errors.size() == 3);
+		assertTrue(errors.contains(Utils.userNameExistsMsg));
+		assertTrue(errors.contains(Utils.phoneNumberExistsMsg));
+		assertTrue(errors.contains(Utils.emailExistsMsg));
+	}
+	
+	@Test
+	public void testSignUpReturns422WhenPasswordsDoNotMatch() throws Exception {
+
+		String newUserPassword = "h4$h3dPa$$";
+		AppUser newUser = new AppUser();
+		newUser.setEmail("test_user@emles.com");
+		newUser.setName("test_user");
+		newUser.setPassword(newUserPassword);
+		newUser.setPasswordConfirmation(newUserPassword + "s");
+		newUser.setPhone("700720700");
+		
+		MvcResult result = sendSignUpRequest(newUser, 422);
+
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		@SuppressWarnings("unchecked")
+		List<String> errors = (List<String>) responseMap.get("validationErrors");
+
+		assertTrue(errors.size() == 1);
+		assertTrue(errors.contains(Utils.passwordsNotEqualMsg));
+	}
+	
+	@Test
+	public void testSignUpReturns422WhenPasswordIsInvalid() throws Exception {
+
+		String newUserPassword = "h4$h3dPa$$";
+		AppUser newUser = new AppUser();
+		newUser.setEmail("test_user@emles.com");
+		newUser.setName("test_user");
+		newUser.setPassword("invalid");
+		newUser.setPasswordConfirmation(newUserPassword);
+		newUser.setPhone("700720700");
+		
+		MvcResult result = sendSignUpRequest(newUser, 422);
+
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		@SuppressWarnings("unchecked")
+		List<String> errors = (List<String>) responseMap.get("validationErrors");
+
+		assertTrue(errors.size() == 2);
+		assertTrue(errors.contains(Utils.passwordsNotEqualMsg));
+		assertTrue(errors.contains(Utils.invalidPasswordMsg));
+	}
+	
+	@Test
+	public void testSignUpReturns422WhenPasswordConfirmationIsInvalid() throws Exception {
+
+		String newUserPassword = "h4$h3dPa$$";
+		AppUser newUser = new AppUser();
+		newUser.setEmail("test_user@emles.com");
+		newUser.setName("test_user");
+		newUser.setPassword(newUserPassword);
+		newUser.setPasswordConfirmation("invalid");
+		newUser.setPhone("700720700");
+		
+		MvcResult result = sendSignUpRequest(newUser, 422);
+
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		@SuppressWarnings("unchecked")
+		List<String> errors = (List<String>) responseMap.get("validationErrors");
+
+		assertTrue(errors.size() == 2);
+		assertTrue(errors.contains(Utils.passwordsNotEqualMsg));
+		assertTrue(errors.contains(Utils.invalidPasswordConfirmationMsg));
+	}
+	
+	@Test
+	public void testSignUpReturns422WhenUsernameIsTooShort() throws Exception {
+
+		String newUserPassword = "h4$h3dPa$$";
+		AppUser newUser = new AppUser();
+		newUser.setEmail("test_user@emles.com");
+		newUser.setName("tes");
+		newUser.setPassword(newUserPassword);
+		newUser.setPasswordConfirmation(newUserPassword);
+		newUser.setPhone("700720700");
+		
+		MvcResult result = sendSignUpRequest(newUser, 422);
+
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		@SuppressWarnings("unchecked")
+		List<String> errors = (List<String>) responseMap.get("validationErrors");
+
+		assertTrue(errors.size() == 1);
+		assertTrue(errors.contains(Utils.userNameRequirementMsg));
+	}
+	
+	@Test
+	public void testSignUpReturns422WhenUsernameIsTooLong() throws Exception {
+
+		String newUserPassword = "h4$h3dPa$$";
+		AppUser newUser = new AppUser();
+		newUser.setEmail("test_user@emles.com");
+		newUser.setName(Utils.invalidPasswordConfirmationMsg.replaceAll("\\s", ""));
+		newUser.setPassword(newUserPassword);
+		newUser.setPasswordConfirmation(newUserPassword);
+		newUser.setPhone("700720700");
+		
+		MvcResult result = sendSignUpRequest(newUser, 422);
+
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		@SuppressWarnings("unchecked")
+		List<String> errors = (List<String>) responseMap.get("validationErrors");
+
+		assertTrue(errors.size() == 1);
+		assertTrue(errors.contains(Utils.userNameRequirementMsg));
+	}
+	
+	@Test
+	public void testSignUpReturns422WhenUsernameContainsForbiddenChars() throws Exception {
+
+		String newUserPassword = "h4$h3dPa$$";
+		AppUser newUser = new AppUser();
+		newUser.setEmail("test_user@emles.com");
+		newUser.setName("u$ern$m.,_ ");
+		newUser.setPassword(newUserPassword);
+		newUser.setPasswordConfirmation(newUserPassword);
+		newUser.setPhone("700720700");
+		
+		MvcResult result = sendSignUpRequest(newUser, 422);
+
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		@SuppressWarnings("unchecked")
+		List<String> errors = (List<String>) responseMap.get("validationErrors");
+
+		assertTrue(errors.size() == 1);
+		assertTrue(errors.contains(Utils.userNameRequirementMsg));
+	}
+	
+	@Test
+	public void testCreateUserByAdminSuccess() throws Exception {
+
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		
+		String newUserPassword = "h4$h3dPa$$";
+		Authority productAdminAuthority = authorityRepository.findByAuthority("ROLE_PRODUCT_ADMIN");
+		Authority userAuthority = authorityRepository.findByAuthority("ROLE_USER");
+		List<Authority> authorities = Arrays.asList(productAdminAuthority, userAuthority);
+		AppUser newUser = new AppUser();
+		newUser.setEmail("newuser@emles.com");
+		newUser.setName("newuser");
+		newUser.setPassword(newUserPassword);
+		newUser.setPasswordConfirmation(newUserPassword);
+		newUser.setPhone("600600666");
+		newUser.setAuthorities(authorities);
+		
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "oauth_admin");
+		params.add("password", password);
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+				.perform(post("/user/admin/create_user").params(params).headers(httpHeaders)
+						.content(objectMapper.writeValueAsString(newUser))
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200))
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		assertTrue(responseMap.get("msg").equals(Utils.userCreatedSuccessMsg));
+		
+		AppUser found = userRepository.findByName(newUser.getName());
+		
+		assertTrue(found != null);
+		assertTrue(found.getEmail().equals(newUser.getEmail()));
+		assertTrue(found.getName().equals(newUser.getName()));
+		assertTrue(found.getPhone().equals(newUser.getPhone()));
+		assertTrue(found.getAuthorities().size() == 2);
+		List<String> authorityNames = found.getAuthorities().stream().map(Authority::getAuthority).collect(Collectors.toList());
+		assertTrue(authorityNames.contains("ROLE_PRODUCT_ADMIN"));
+		assertTrue(authorityNames.contains("ROLE_USER"));
+		assertTrue(found.isEnabled());
+		
+		AccountActivationToken activationToken = accountActivationRepository.findByUser(found);
+		assertTrue(activationToken == null);
+		
+		signOut(204, accessToken, oauthAdminClientId);
+	}
+
+	private MvcResult sendSignUpRequest(AppUser newUser, int expectedStatus) throws Exception, JsonProcessingException {
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "oauth_admin");
+		params.add("password", password);
+
+		MvcResult result = mvc
+				.perform(post("/user/sign_up").params(params)
+						.content(objectMapper.writeValueAsString(newUser))
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedStatus))
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+		return result;
 	}
 
 	private MvcResult sendUpdateUserDataRequestForSignedInUser(UserData newUserData, String clientId, String userName,

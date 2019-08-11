@@ -74,7 +74,7 @@ public class ForgotPasswordIntegrationTest {
 
 	@Test
 	public void testForgotPasswordSuccess() throws Exception {
-		AppUser user = userService.findById(1L).get();
+		AppUser user = userService.findByName("oauth_admin");
 
 		requestPasswordResetToken(user);
 		PasswordResetToken token = passwordTokenRepository.findByUser(user);
@@ -100,7 +100,7 @@ public class ForgotPasswordIntegrationTest {
 
 	@Test
 	public void testChangeForgottenPasswordSuccess() throws Exception {
-		AppUser user = userService.findById(1L).get();
+		AppUser user = userService.findByName("oauth_admin");
 
 		requestPasswordResetToken(user);
 		PasswordResetToken token = passwordTokenRepository.findByUser(user);
@@ -131,7 +131,7 @@ public class ForgotPasswordIntegrationTest {
 
 	@Test
 	public void testChangeForgottenPasswordReturns422WhenTokenIsInvalid() throws Exception {
-		AppUser user = userService.findById(1L).get();
+		AppUser user = userService.findByName("oauth_admin");
 		String token = "ABCD-EFGH-IJKL";
 		String invalidToken = "invalid";
 		Passwords passwords = new Passwords();
@@ -148,7 +148,7 @@ public class ForgotPasswordIntegrationTest {
 
 	@Test
 	public void testChangeForgottenPasswordReturns422WhenUserIdIsInvalid() throws Exception {
-		AppUser user = userService.findById(1L).get();
+		AppUser user = userService.findByName("oauth_admin");
 		String token = "ABCD-EFGH-IJKL";
 		Passwords passwords = new Passwords();
 		passwords.setPassword("abcd@@@##AA11");
@@ -164,7 +164,7 @@ public class ForgotPasswordIntegrationTest {
 
 	@Test
 	public void testChangeForgottenPasswordReturns422WhenTokenIsExpired() throws Exception {
-		AppUser user = userService.findById(1L).get();
+		AppUser user = userService.findByName("oauth_admin");
 		String token = "ABCD-EFGH-IJKL";
 		Passwords passwords = new Passwords();
 		passwords.setPassword("abcd@@@##AA11");
@@ -183,7 +183,7 @@ public class ForgotPasswordIntegrationTest {
 
 	@Test
 	public void testChangeForgottenPasswordReturns422WhenPasswordsAreNotEqual() throws Exception {
-		AppUser user = userService.findById(1L).get();
+		AppUser user = userService.findByName("oauth_admin");
 		String token = "ABCD-EFGH-IJKL";
 		Passwords passwords = new Passwords();
 		passwords.setPassword("abcd@@@##AA11");
@@ -203,7 +203,7 @@ public class ForgotPasswordIntegrationTest {
 
 	@Test
 	public void testChangeForgottenPasswordReturns422WhenPasswordIsInvalid() throws Exception {
-		AppUser user = userService.findById(1L).get();
+		AppUser user = userService.findByName("oauth_admin");
 		String token = "ABCD-EFGH-IJKL";
 		Passwords passwords = new Passwords();
 		passwords.setPassword("invalid");
@@ -224,7 +224,7 @@ public class ForgotPasswordIntegrationTest {
 
 	@Test
 	public void testChangeForgottenPasswordReturns422WhenPasswordConfirmationIsInvalid() throws Exception {
-		AppUser user = userService.findById(1L).get();
+		AppUser user = userService.findByName("oauth_admin");
 		String token = "ABCD-EFGH-IJKL";
 		Passwords passwords = new Passwords();
 		passwords.setPassword("abcd@@@##AA1");
@@ -245,7 +245,7 @@ public class ForgotPasswordIntegrationTest {
 
 	@Test
 	public void testChangeForgottenPasswordReturns422WhenPasswordsAreInvalid() throws Exception {
-		AppUser user = userService.findById(1L).get();
+		AppUser user = userService.findByName("oauth_admin");
 		String token = "ABCD-EFGH-IJKL";
 		Passwords passwords = new Passwords();
 		passwords.setPassword("notequal");

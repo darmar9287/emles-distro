@@ -66,6 +66,32 @@ public class RegistrationController {
 	@Resource(name = "oauthServerTokenServices")
 	private AuthorizationServerTokenServices tokenServices;
 
+	@RequestMapping(value = "/validate_user_account", method = RequestMethod.POST)
+	public ResponseEntity<?> validateUser(@RequestParam("id") long id, @RequestParam("token") String token) {
+		Map<String, Object> responseMap = new HashMap<>();
+		boolean result = userService.validateAccountActivationToken(id, token);
+
+		if (!result) {
+			responseMap.put("error", Utils.invalidActivationTokenMsg);
+			return ResponseEntity.unprocessableEntity().body(responseMap);
+		}
+		responseMap.put("msg", Utils.accountActivatedMsg);
+		return ResponseEntity.ok().body(responseMap);
+	}
+
+	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
+	@RequestMapping(value = "/admin/create_user", method = RequestMethod.POST)
+	public ResponseEntity<?> createUser(HttpServletRequest request, @Valid @RequestBody AppUser user, Errors errors) {
+
+		return signUpNewUser(user, errors, true);
+	}
+
+	@RequestMapping(value = "/sign_up", method = RequestMethod.POST)
+	public ResponseEntity<?> signUp(HttpServletRequest request, @Valid @RequestBody AppUser user, Errors errors) {
+
+		return signUpNewUser(user, errors, false);
+	}
+
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/admin/update_account/{userId}", method = RequestMethod.PUT)
 	public ResponseEntity<?> updateAccountDataByAdmin(@PathVariable("userId") Long userId,
@@ -80,7 +106,7 @@ public class RegistrationController {
 		return ResponseEntity.unprocessableEntity().body(responseMap);
 	}
 
-	@PreAuthorize("hasAnyAuthority('ROLE_OAUTH_ADMIN', 'ROLE_PRODUCT_ADMIN', 'ROLE_RESOURCE_ADMIN')")
+	@PreAuthorize("hasAnyAuthority('ROLE_OAUTH_ADMIN', 'ROLE_PRODUCT_ADMIN', 'ROLE_USER')")
 	@RequestMapping(value = "/update_account", method = RequestMethod.PUT)
 	public ResponseEntity<?> updateAccountData(@Valid @RequestBody UserData userData, Errors errors) {
 		AppUser user = userService.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -113,7 +139,7 @@ public class RegistrationController {
 		return ResponseEntity.unprocessableEntity().body(responseMap);
 	}
 
-	@PreAuthorize("hasAnyAuthority('ROLE_OAUTH_ADMIN', 'ROLE_PRODUCT_ADMIN', 'ROLE_RESOURCE_ADMIN')")
+	@PreAuthorize("hasAnyAuthority('ROLE_OAUTH_ADMIN', 'ROLE_PRODUCT_ADMIN', 'ROLE_USER')")
 	@RequestMapping(value = "/change_password", method = RequestMethod.POST)
 	public ResponseEntity<?> changePassword(HttpServletRequest request, @Valid @RequestBody UserPasswords passwords,
 			Errors errors) {
@@ -178,6 +204,33 @@ public class RegistrationController {
 
 		userService.updateUserPasswordWithResetToken(user, newPassword, token);
 		responseMap.put("msg", Utils.passwordChangedSuccessMsg);
+		return ResponseEntity.ok().body(responseMap);
+	}
+
+	private ResponseEntity<?> signUpNewUser(AppUser user, Errors errors, boolean isCreatedByAdmin) {
+		List<String> errorMessages = new ArrayList<>();
+		Map<String, Object> responseMap = new HashMap<>();
+
+		userService.validateUniqueValuesForUser(user, errorMessages);
+		userService.checkEqualityOfPasswords(user, errorMessages);
+		userService.checkOtherValidationErrors(errors, errorMessages);
+
+		if (errorMessages.size() > 0) {
+			responseMap.put("validationErrors", errorMessages);
+			return ResponseEntity.unprocessableEntity().body(responseMap);
+		}
+		if (!isCreatedByAdmin) {
+			userService.saveNewUserWithStandardRole(user);
+			String token = UUID.randomUUID().toString();
+			userService.createAccountActivationTokenForUser(user, token);
+			responseMap.put("msg", Utils.signUpSuccessMsg);
+		} else {
+			userService.createUser(user);
+			responseMap.put("msg", Utils.userCreatedSuccessMsg);
+		}
+
+		// TODO: create mail service
+
 		return ResponseEntity.ok().body(responseMap);
 	}
 
