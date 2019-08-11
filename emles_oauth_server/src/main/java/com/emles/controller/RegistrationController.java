@@ -16,6 +16,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,6 +45,7 @@ import com.emles.model.AppUser;
 import com.emles.model.Passwords;
 import com.emles.model.UserData;
 import com.emles.model.UserPasswords;
+import com.emles.model.projection.UserSimplified;
 import com.emles.service.UserService;
 import com.emles.utils.Utils;
 
@@ -48,6 +53,9 @@ import com.emles.utils.Utils;
 @RequestMapping("/user")
 public class RegistrationController {
 
+	@Value("${config.pagination.per_page}")
+	private int PER_PAGE;
+	
 	@Autowired
 	private UserService userService;
 
@@ -66,6 +74,32 @@ public class RegistrationController {
 	@Resource(name = "oauthServerTokenServices")
 	private AuthorizationServerTokenServices tokenServices;
 
+	@PreAuthorize("hasAnyAuthority('ROLE_OAUTH_ADMIN', 'ROLE_PRODUCT_ADMIN', 'ROLE_USER')")
+	@RequestMapping(value = "/my_account", method = RequestMethod.GET)
+	public ResponseEntity<?> showMyAccount() {
+		UserSimplified user = userService.findSimplifiedByName(SecurityContextHolder.getContext().getAuthentication().getName());
+		return ResponseEntity.ok().body(user);
+	}
+	
+	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
+	@RequestMapping(value = "/admin/show/{userId}", method = RequestMethod.GET)
+	public ResponseEntity<?> showUserForAdmin(@PathVariable(name = "userId", required = true) long userId) {
+		Optional<AppUser> userOpt = userService.findById(userId);
+		if (userOpt.isPresent()) {
+			return ResponseEntity.ok().body(userOpt.get());
+		}
+		return ResponseEntity.notFound().build();
+	}
+	
+	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
+	@RequestMapping(value = {"/admin/users/{page}", "/admin/users"}, method = RequestMethod.GET)
+	public Page<UserSimplified> showUsers(@PathVariable(name = "page", required = false) Integer page) {
+		if (page == null) 
+			page = 0;
+		Pageable pageable = PageRequest.of(page, PER_PAGE);
+		return userService.listUsers(pageable);
+	}
+	
 	@RequestMapping(value = "/validate_user_account", method = RequestMethod.POST)
 	public ResponseEntity<?> validateUser(@RequestParam("id") long id, @RequestParam("token") String token) {
 		Map<String, Object> responseMap = new HashMap<>();
@@ -213,6 +247,7 @@ public class RegistrationController {
 
 		userService.validateUniqueValuesForUser(user, errorMessages);
 		userService.checkEqualityOfPasswords(user, errorMessages);
+		System.out.println("CHUJ KURWA");
 		userService.checkOtherValidationErrors(errors, errorMessages);
 
 		if (errorMessages.size() > 0) {

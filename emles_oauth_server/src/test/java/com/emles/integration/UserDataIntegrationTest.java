@@ -4,6 +4,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -1026,6 +1027,160 @@ public class UserDataIntegrationTest {
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 		assertTrue(responseMap.get("error").equals(Utils.invalidActivationTokenMsg));
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testPaginationOfUsers() throws Exception {
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		
+		int numOfRequests = 3;
+		for (int i = 0; i < numOfRequests; i++) {
+			MvcResult result = sendGetUsersRequest(i, 200);
+
+			String responseString = result.getResponse().getContentAsString();
+			Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+
+			List<Object> users = (List<Object>)responseMap.get("content");
+			responseMap = (Map<String, Object>) users.get(0);
+			assertTrue(responseMap.get("id") != null);
+			assertTrue(responseMap.get("name") != null);
+			assertTrue(responseMap.get("userData") != null);
+			assertTrue(responseMap.get("passwords") == null);
+			assertTrue(responseMap.get("enabled") == null);
+			assertTrue(responseMap.get("authorities") == null);
+			assertTrue(responseMap.get("password") == null);
+			assertTrue(responseMap.get("lastPasswordResetDate") == null);
+		}
+		signOut(204, accessToken, oauthAdminClientId);
+	}
+
+	@Test
+	public void testPaginationOfUsersReturns403WhenSignedInUserIsNotOauthAdmin() throws Exception {
+		Map<String, Object> loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		sendGetUsersRequest(0, 403);
+		signOut(204, accessToken, resourceAdminClientId);
+		
+		loginResponse = loginAs("product_admin", productAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		sendGetUsersRequest(0, 403);
+		signOut(204, accessToken, productAdminClientId);
+	}
+	
+	@Test
+	public void testShowMyAccount() throws Exception {
+		Map<String, Object> loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", resourceAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+				.perform(get("/user/my_account").params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200))
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+		
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+
+		assertTrue(responseMap.get("id") != null);
+		assertTrue(responseMap.get("name") != null);
+		assertTrue(responseMap.get("userData") != null);
+		assertTrue(responseMap.get("passwords") == null);
+		assertTrue(responseMap.get("enabled") == null);
+		assertTrue(responseMap.get("authorities") == null);
+		assertTrue(responseMap.get("password") == null);
+		assertTrue(responseMap.get("last_password_reset_date") == null);
+		signOut(204, accessToken, resourceAdminClientId);
+	}
+	
+	@Test
+	public void testShowUserForAdminSuccess() throws Exception {
+		AppUser user = userRepository.findByName("resource_admin");
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "oauth_admin");
+		params.add("password", password);
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+				.perform(get("/user/admin/show/" + user.getId()).params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200))
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+		
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+
+		assertTrue(responseMap.get("id") != null);
+		assertTrue(responseMap.get("name") != null);
+		assertTrue(responseMap.get("userData") != null);
+		assertTrue(responseMap.get("passwords") != null);
+		assertTrue(responseMap.get("enabled") != null);
+		assertTrue(responseMap.get("authorities") != null);
+		assertTrue(responseMap.get("password") != null);
+		assertTrue(responseMap.get("lastPasswordResetDate") != null);
+		signOut(204, accessToken, oauthAdminClientId);
+	}
+	
+	@Test
+	public void testShowUserForAdminReturns404WhenUserIdIsInvalid() throws Exception {
+		long userId = 1000L;
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "oauth_admin");
+		params.add("password", password);
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		mvc
+				.perform(get("/user/admin/show/" + userId).params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(404))
+				.andReturn();
+		
+		signOut(204, accessToken, oauthAdminClientId);
+	}
+	
+	private MvcResult sendGetUsersRequest(int page, int expectedStatus) throws Exception {
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "oauth_admin");
+		params.add("password", password);
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+				.perform(get("/user/admin/users/" + (page == 0 ? "" : page)).params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedStatus))
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+		return result;
 	}
 
 	private MvcResult sendSignUpRequest(AppUser newUser, int expectedStatus) throws Exception, JsonProcessingException {

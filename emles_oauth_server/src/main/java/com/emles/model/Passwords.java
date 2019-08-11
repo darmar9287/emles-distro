@@ -5,7 +5,9 @@ import javax.persistence.Embeddable;
 import javax.persistence.Transient;
 import javax.validation.constraints.Pattern;
 
+
 import com.emles.utils.Utils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 
@@ -15,6 +17,7 @@ public class Passwords {
     		message = Utils.invalidPasswordMsg)
     @Column(name = "password")
 	@JsonView(Views.Internal.class)
+	@JsonIgnore
     private String password;
     
     @Pattern(regexp = Utils.passwordRegex, 
@@ -22,6 +25,7 @@ public class Passwords {
     @JsonProperty
     @Transient
     @JsonView(Views.Internal.class)
+    @JsonIgnore
     private String passwordConfirmation;
 
 	public String getPassword() {

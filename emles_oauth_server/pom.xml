@@ -54,7 +54,14 @@
 		    <groupId>redis.clients</groupId>
 		    <artifactId>jedis</artifactId>
 		</dependency>
-		
+		<dependency>
+		<groupId>com.fasterxml.jackson.core</groupId>
+    		<artifactId>jackson-core</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>com.fasterxml.jackson.core</groupId>
+		    <artifactId>jackson-databind</artifactId> 
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.springframework.security.oauth.boot/spring-security-oauth2-autoconfigure -->
 		<dependency>
 		    <groupId>org.springframework.security.oauth.boot</groupId>

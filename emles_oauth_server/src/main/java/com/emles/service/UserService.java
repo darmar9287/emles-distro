@@ -6,6 +6,8 @@ import java.util.Set;
 
 import javax.validation.Valid;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.validation.Errors;
 
 import com.emles.model.AppUser;
@@ -13,6 +15,7 @@ import com.emles.model.Authority;
 import com.emles.model.Passwords;
 import com.emles.model.UserData;
 import com.emles.model.UserPasswords;
+import com.emles.model.projection.UserSimplified;
 
 public interface UserService {
 
@@ -57,4 +60,8 @@ public interface UserService {
 	boolean toggleEnableUser(long userId);
 
 	void saveNewUserWithStandardRole(@Valid AppUser user);
+	
+	Page<UserSimplified> listUsers(Pageable pageable);
+
+	UserSimplified findSimplifiedByName(String name);
 }

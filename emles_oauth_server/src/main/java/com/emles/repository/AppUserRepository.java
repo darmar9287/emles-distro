@@ -1,8 +1,11 @@
 package com.emles.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.emles.model.AppUser;
+import com.emles.model.projection.UserSimplified;
 
 /**
  * Repository for Credentials class.
@@ -32,4 +35,8 @@ public interface AppUserRepository
      * @return found user entity.
      */
     AppUser findByUserDataPhone(String phone);
+    
+    Page<UserSimplified> findAllBy(Pageable pageable);
+    
+    UserSimplified findSimplifiedByName(String name);
 }

@@ -16,6 +16,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 
+
 import com.emles.utils.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -63,11 +64,13 @@ public class AppUser implements Serializable {
     @Embedded
     @Valid
     @JsonView(Views.Internal.class)
+    @JsonIgnore
     private Passwords passwords;
 
     @Column(name = "last_password_reset_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     @JsonIgnore
+    @JsonView(Views.Internal.class)
     private Date lastPasswordResetDate;
     
     @Embedded
