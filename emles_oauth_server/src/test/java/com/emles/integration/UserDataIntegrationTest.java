@@ -1131,12 +1131,13 @@ public class UserDataIntegrationTest {
 
 		assertTrue(responseMap.get("id") != null);
 		assertTrue(responseMap.get("name") != null);
-		assertTrue(responseMap.get("userData") != null);
-		assertTrue(responseMap.get("passwords") != null);
+		assertTrue(responseMap.get("email") != null);
+		assertTrue(responseMap.get("phone") != null);
+		assertTrue(responseMap.get("passwords") == null);
 		assertTrue(responseMap.get("enabled") != null);
 		assertTrue(responseMap.get("authorities") != null);
-		assertTrue(responseMap.get("password") != null);
-		assertTrue(responseMap.get("lastPasswordResetDate") != null);
+		assertTrue(responseMap.get("password") == null);
+		assertTrue(responseMap.get("lastPasswordResetDate") == null);
 		signOut(204, accessToken, oauthAdminClientId);
 	}
 	
