@@ -22,7 +22,7 @@ public final class Authority implements GrantedAuthority, Serializable {
 
     /** authority_id field in DB.*/
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /** authority field in DB.*/

@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.emles.model.AppUser;
+import com.emles.model.Authority;
 import com.emles.model.Passwords;
 import com.emles.model.UserData;
 import com.emles.model.UserPasswords;
@@ -86,7 +87,15 @@ public class RegistrationController {
 	public ResponseEntity<?> showUserForAdmin(@PathVariable(name = "userId", required = true) long userId) {
 		Optional<AppUser> userOpt = userService.findById(userId);
 		if (userOpt.isPresent()) {
-			return ResponseEntity.ok().body(userOpt.get());
+			Map<String, Object> responseMap = new HashMap<>();
+			AppUser user = userOpt.get();
+			responseMap.put("name", user.getName());
+			responseMap.put("authorities", user.getAuthorities().stream().map(Authority::getAuthority).toArray());
+			responseMap.put("email", user.getEmail());
+			responseMap.put("phone", user.getPhone());
+			responseMap.put("id", user.getId());
+			responseMap.put("enabled", user.isEnabled());
+			return ResponseEntity.ok().body(responseMap);
 		}
 		return ResponseEntity.notFound().build();
 	}
