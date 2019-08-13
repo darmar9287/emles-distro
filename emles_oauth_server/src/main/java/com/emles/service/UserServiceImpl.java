@@ -245,6 +245,15 @@ public class UserServiceImpl implements UserService {
 	public UserSimplified findSimplifiedByName(String name) {
 		return userRepository.findSimplifiedByName(name);
 	}
+	
+	@Transactional
+	public void updateUserRoles(AppUser appUser, List<Authority> authorities) {
+		for (Authority ur : authorities) {
+			authorityRepository.save(ur);
+		}
+		appUser.setAuthorities(authorities);
+		userRepository.save(appUser);
+	}
 
 	@Transactional
 	private void checkIfPhoneNumberExistsInDb(String phoneNumber, List<String> errorMessages) {
