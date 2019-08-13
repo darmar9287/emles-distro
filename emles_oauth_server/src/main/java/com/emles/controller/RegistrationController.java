@@ -75,6 +75,19 @@ public class RegistrationController {
 	@Resource(name = "oauthServerTokenServices")
 	private AuthorizationServerTokenServices tokenServices;
 
+	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
+	@RequestMapping(value = "/admin/user/{userId}/update_roles", method = RequestMethod.PUT)
+	public ResponseEntity<?> updateUserRoles(@PathVariable(name = "userId", required = true) long userId, @RequestBody List<Authority> authorities) {
+		Optional<AppUser> userOpt = userService.findById(userId);
+		if (userOpt.isPresent()) {
+			Map<String, Object> responseMap = new HashMap<>();
+			responseMap.put("msg", Utils.updateUserDataSuccessMsg);
+			userService.updateUserRoles(userOpt.get(), authorities);
+			return ResponseEntity.ok().body(responseMap);
+		}
+		return ResponseEntity.notFound().build();
+	}
+	
 	@PreAuthorize("hasAnyAuthority('ROLE_OAUTH_ADMIN', 'ROLE_PRODUCT_ADMIN', 'ROLE_USER')")
 	@RequestMapping(value = "/my_account", method = RequestMethod.GET)
 	public ResponseEntity<?> showMyAccount() {
@@ -256,7 +269,6 @@ public class RegistrationController {
 
 		userService.validateUniqueValuesForUser(user, errorMessages);
 		userService.checkEqualityOfPasswords(user, errorMessages);
-		System.out.println("CHUJ KURWA");
 		userService.checkOtherValidationErrors(errors, errorMessages);
 
 		if (errorMessages.size() > 0) {

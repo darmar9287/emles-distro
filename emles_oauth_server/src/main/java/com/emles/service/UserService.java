@@ -64,4 +64,6 @@ public interface UserService {
 	Page<UserSimplified> listUsers(Pageable pageable);
 
 	UserSimplified findSimplifiedByName(String name);
+
+	void updateUserRoles(AppUser appUser, List<Authority> authorities);
 }
