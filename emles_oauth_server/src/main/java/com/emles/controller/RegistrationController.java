@@ -76,13 +76,13 @@ public class RegistrationController {
 	private AuthorizationServerTokenServices tokenServices;
 
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
-	@RequestMapping(value = "/admin/user/{userId}/update_roles", method = RequestMethod.PUT)
-	public ResponseEntity<?> updateUserRoles(@PathVariable(name = "userId", required = true) long userId, @RequestBody List<Authority> authorities) {
+	@RequestMapping(value = "/admin/{userId}/update_roles", method = RequestMethod.PUT)
+	public ResponseEntity<?> updateUserRoles(@PathVariable(name = "userId", required = true) long userId, @RequestBody List<Long> authorityIds) {
 		Optional<AppUser> userOpt = userService.findById(userId);
 		if (userOpt.isPresent()) {
 			Map<String, Object> responseMap = new HashMap<>();
 			responseMap.put("msg", Utils.updateUserDataSuccessMsg);
-			userService.updateUserRoles(userOpt.get(), authorities);
+			userService.updateUserRoles(userOpt.get(), authorityIds);
 			return ResponseEntity.ok().body(responseMap);
 		}
 		return ResponseEntity.notFound().build();

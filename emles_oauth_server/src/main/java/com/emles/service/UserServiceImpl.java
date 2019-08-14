@@ -247,11 +247,11 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Transactional
-	public void updateUserRoles(AppUser appUser, List<Authority> authorities) {
-		for (Authority ur : authorities) {
-			authorityRepository.save(ur);
-		}
-		appUser.setAuthorities(authorities);
+	public void updateUserRoles(AppUser appUser, List<Long> authorityIds) {
+		Iterable<Authority> authorities = authorityRepository.findAllById(authorityIds);
+		List<Authority> authoritiesList = new ArrayList<>();
+		authorities.forEach(authoritiesList::add);
+		appUser.setAuthorities(authoritiesList);
 		userRepository.save(appUser);
 	}
 

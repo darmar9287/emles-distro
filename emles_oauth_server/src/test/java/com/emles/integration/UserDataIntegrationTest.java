@@ -1165,6 +1165,68 @@ public class UserDataIntegrationTest {
 		signOut(204, accessToken, oauthAdminClientId);
 	}
 	
+	@Test
+	public void testUpdateUserAuthoritySuccess() throws Exception {
+		
+		AppUser resourceAdmin = userRepository.findByName("resource_admin");
+		Authority productAdminAuthority = authorityRepository.findByAuthority("ROLE_PRODUCT_ADMIN");
+		Authority oauthAdminAuthority = authorityRepository.findByAuthority("ROLE_OAUTH_ADMIN");
+		List<Long> authorityIds = Arrays.asList(productAdminAuthority, oauthAdminAuthority)
+				.stream().map(authority -> authority.getId()).collect(Collectors.toList());
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "oauth_admin");
+		params.add("password", password);
+
+		List<String> resourceAdminAuthorities = resourceAdmin.getAuthorities().stream().map(Authority::getAuthority).collect(Collectors.toList());
+		assertTrue(resourceAdminAuthorities.contains("ROLE_USER"));
+		assertFalse(resourceAdminAuthorities.contains("ROLE_PRODUCT_ADMIN"));
+		assertFalse(resourceAdminAuthorities.contains("ROLE_OAUTH_ADMIN"));
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+				.perform(put("/user/admin/" + resourceAdmin.getId() + "/update_roles").params(params).headers(httpHeaders)
+						.content(objectMapper.writeValueAsString(authorityIds)).contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200))
+				.andExpect(content().contentType("application/json;charset=UTF-8")).andReturn();
+		
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		resourceAdmin = userRepository.findByName("resource_admin");
+		resourceAdminAuthorities = resourceAdmin.getAuthorities().stream().map(Authority::getAuthority).collect(Collectors.toList());
+		assertFalse(resourceAdminAuthorities.contains("ROLE_USER"));
+		assertTrue(resourceAdminAuthorities.contains("ROLE_PRODUCT_ADMIN"));
+		assertTrue(resourceAdminAuthorities.contains("ROLE_OAUTH_ADMIN"));
+		assertTrue(responseMap.get("msg").equals(Utils.updateUserDataSuccessMsg));
+	}
+	
+	@Test
+	public void testUpdateUserAuthorityReturns404WhenUserIdIsNotFound() throws Exception {
+		
+		long invalidUserId = 1000L;
+		List<Long> authorityIds = Arrays.asList(1L, 2L);
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "oauth_admin");
+		params.add("password", password);
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		mvc
+			.perform(put("/user/admin/" + invalidUserId + "/update_roles").params(params).headers(httpHeaders)
+					.content(objectMapper.writeValueAsString(authorityIds)).contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(404));
+	}
+	
 	private MvcResult sendGetUsersRequest(int page, int expectedStatus) throws Exception {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
