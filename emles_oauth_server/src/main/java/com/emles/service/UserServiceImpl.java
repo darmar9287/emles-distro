@@ -254,6 +254,11 @@ public class UserServiceImpl implements UserService {
 		appUser.setAuthorities(authoritiesList);
 		userRepository.save(appUser);
 	}
+	
+	@Transactional
+	public void deleteUser(Long userId) {
+		userRepository.deleteById(userId);
+	}
 
 	@Transactional
 	private void checkIfPhoneNumberExistsInDb(String phoneNumber, List<String> errorMessages) {

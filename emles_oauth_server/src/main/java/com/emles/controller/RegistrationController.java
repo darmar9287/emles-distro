@@ -75,6 +75,32 @@ public class RegistrationController {
 	@Resource(name = "oauthServerTokenServices")
 	private AuthorizationServerTokenServices tokenServices;
 
+	@PreAuthorize("hasAnyAuthority('ROLE_OAUTH_ADMIN', 'ROLE_PRODUCT_ADMIN', 'ROLE_USER')")
+	@RequestMapping(value = "/my_account/delete", method = RequestMethod.DELETE)
+	public ResponseEntity<?> deleteAccount() {
+		AppUser user = userService.findByName(SecurityContextHolder.getContext().getAuthentication().getName());
+		signOutUserRemotely(user);
+		Map<String, Object> responseMap = new HashMap<>();
+		responseMap.put("msg", Utils.accountRemovedMsg);
+		userService.deleteUser(user.getId());
+		return ResponseEntity.ok().body(responseMap);
+	}
+	
+	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
+	@RequestMapping(value = "/admin/delete_account/{userId}", method = RequestMethod.DELETE)
+	public ResponseEntity<?> deleteAccountByAdmin(@PathVariable("userId") Long userId) {
+		Optional<AppUser> userOpt = userService.findById(userId);
+		if (userOpt.isPresent()) {
+			Map<String, Object> responseMap = new HashMap<>();
+			signOutUserRemotely(userOpt.get());
+			responseMap.put("msg", Utils.accountRemovedMsg);
+			userService.deleteUser(userId);
+			return ResponseEntity.ok().body(responseMap);
+		}
+
+		return ResponseEntity.notFound().build();
+	}
+	
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/admin/{userId}/update_roles", method = RequestMethod.PUT)
 	public ResponseEntity<?> updateUserRoles(@PathVariable(name = "userId", required = true) long userId, @RequestBody List<Long> authorityIds) {
