@@ -1279,6 +1279,87 @@ public class UserDataIntegrationTest {
 			.andReturn();
 	}
 	
+	@Test
+	public void testDeleteMyAccount() throws Exception {
+		AppUser user = userRepository.findByName("resource_admin");
+		Map<String, Object> loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", resourceAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+		
+		assertTrue(user != null);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+			.perform(delete("/user/my_account/delete").params(params).headers(httpHeaders)
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(200))
+			.andReturn();
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		
+		user = userRepository.findByName("resource_admin");
+		assertTrue(user == null);
+		assertTrue(responseMap.get("msg").equals(Utils.accountRemovedMsg));
+		signOut(401, accessToken, resourceAdminClientId);
+	}
+	
+	@Test
+	public void testDeleteAccountByAdminSuccess() throws Exception {
+		AppUser user = userRepository.findByName("resource_admin");
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+		
+		assertTrue(user != null);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+			.perform(delete("/user/admin/delete_account/" + user.getId()).params(params).headers(httpHeaders)
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(200))
+			.andReturn();
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		
+		user = userRepository.findByName("resource_admin");
+		assertTrue(user == null);
+		assertTrue(responseMap.get("msg").equals(Utils.accountRemovedMsg));
+		signOut(204, accessToken, oauthAdminClientId);
+	}
+	
+	@Test
+	public void testDeleteAccountByAdminReturns404WheUserIdIsInvalid() throws Exception {
+		long invalidId = 1000L;
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		mvc
+			.perform(delete("/user/admin/delete_account/" + invalidId).params(params).headers(httpHeaders)
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(404))
+			.andReturn();
+
+		signOut(204, accessToken, oauthAdminClientId);
+	}
+	
 	private MvcResult sendGetUsersRequest(int page, int expectedStatus) throws Exception {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");

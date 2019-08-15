@@ -66,4 +66,6 @@ public interface UserService {
 	UserSimplified findSimplifiedByName(String name);
 
 	void updateUserRoles(AppUser appUser, List<Long> authorityIds);
+	
+	void deleteUser(Long userId);
 }

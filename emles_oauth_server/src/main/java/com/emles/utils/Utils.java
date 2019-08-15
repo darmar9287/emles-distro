@@ -68,6 +68,8 @@ public final class Utils {
 	public static final String userNameRegex = "^[A-Za-z0-9_]{4,50}$";
 
 	public static final String phoneNumberRegex = "^(\\d{3}\\-?){2}\\d{3}$";
+
+	public static final String accountRemovedMsg = "Account has been removed.";
 	
     /**
      * Method used to encode user password.
