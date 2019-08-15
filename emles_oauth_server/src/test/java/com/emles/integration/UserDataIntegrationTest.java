@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
@@ -1225,6 +1226,57 @@ public class UserDataIntegrationTest {
 					.content(objectMapper.writeValueAsString(authorityIds)).contentType(MediaType.APPLICATION_JSON)
 					.accept("application/json;charset=UTF-8"))
 			.andExpect(status().is(404));
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testShowAuthorities() throws Exception {
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "oauth_admin");
+		params.add("password", password);
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+			.perform(get("/authority/list").params(params).headers(httpHeaders)
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(200))
+			.andReturn();
+		String responseString = result.getResponse().getContentAsString();
+		List<Object> responseList = jsonParser.parseList(responseString);
+		assertTrue(responseList.size() == 3);
+		responseList.forEach(authorityObj -> {
+			Map<String, Object> authorityMap = (Map<String, Object>)authorityObj;
+			Set<String> authorityKeys = authorityMap.keySet();
+			assertTrue(authorityKeys.size() == 2);
+			assertTrue(authorityKeys.contains("id"));
+			assertTrue(authorityKeys.contains("authority"));
+		});
+	}
+	
+	@Test
+	public void testShowAuthoritiesShouldReturn403WhenUserIsNotOauthAdmin() throws Exception {
+		Map<String, Object> loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", resourceAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		mvc
+			.perform(get("/authority/list").params(params).headers(httpHeaders)
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(403))
+			.andReturn();
 	}
 	
 	private MvcResult sendGetUsersRequest(int page, int expectedStatus) throws Exception {
