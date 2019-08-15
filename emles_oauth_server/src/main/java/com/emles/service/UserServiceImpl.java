@@ -218,14 +218,10 @@ public class UserServiceImpl implements UserService {
 
 	@Transactional
 	public boolean toggleEnableUser(long userId) {
-		Optional<AppUser> userOpt = userRepository.findById(userId);
-		if (userOpt.isPresent()) {
-			AppUser user = userOpt.get();
-			user.setEnabled(!user.isEnabled());
-			userRepository.save(user);
-			return true;
-		}
-		return false;
+		AppUser user = userRepository.findById(userId).get();
+		user.setEnabled(!user.isEnabled());
+		userRepository.save(user);
+		return user.isEnabled();
 	}
 	
 	@Transactional

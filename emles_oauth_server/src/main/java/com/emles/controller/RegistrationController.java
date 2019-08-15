@@ -75,6 +75,22 @@ public class RegistrationController {
 	@Resource(name = "oauthServerTokenServices")
 	private AuthorizationServerTokenServices tokenServices;
 
+	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
+	@RequestMapping(value = "/admin/toggle_enable_user/{userId}", method = RequestMethod.PUT)
+	public ResponseEntity<?> toggleEnableUser(@PathVariable("userId") Long userId) {
+		Optional<AppUser> userOpt = userService.findById(userId);
+		if (userOpt.isPresent()) {
+			Map<String, Object> responseMap = new HashMap<>();
+			signOutUserRemotely(userOpt.get());
+			
+			boolean userEnabled = userService.toggleEnableUser(userId);
+			responseMap.put("msg", userEnabled ? Utils.userEnabledMsg : Utils.userDisabledMsg);
+			return ResponseEntity.ok().body(responseMap);
+		}
+
+		return ResponseEntity.notFound().build();
+	}
+	
 	@PreAuthorize("hasAnyAuthority('ROLE_OAUTH_ADMIN', 'ROLE_PRODUCT_ADMIN', 'ROLE_USER')")
 	@RequestMapping(value = "/my_account/delete", method = RequestMethod.DELETE)
 	public ResponseEntity<?> deleteAccount() {

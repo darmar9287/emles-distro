@@ -70,6 +70,10 @@ public final class Utils {
 	public static final String phoneNumberRegex = "^(\\d{3}\\-?){2}\\d{3}$";
 
 	public static final String accountRemovedMsg = "Account has been removed.";
+
+	public static final String userEnabledMsg = "User has been enabled.";
+
+	public static final String userDisabledMsg = "User has been disabled.";
 	
     /**
      * Method used to encode user password.

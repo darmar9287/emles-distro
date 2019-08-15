@@ -95,7 +95,7 @@ public class UserDataIntegrationTest {
 		jsonParser = JsonParserFactory.getJsonParser();
 	}
 
-	private Map<String, Object> loginAs(String userName, String clientId, String pass) throws Exception {
+	private Map<String, Object> loginAs(String userName, String clientId, String pass, int expectedStatus) throws Exception {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", clientId);
@@ -105,11 +105,15 @@ public class UserDataIntegrationTest {
 		MvcResult result = mvc
 				.perform(post("/oauth/token").params(params).with(httpBasic(clientId, password))
 						.accept("application/json;charset=UTF-8"))
-				.andExpect(status().isOk()).andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedStatus)).andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 		return responseMap;
+	}
+	
+	private Map<String, Object> loginAs(String userName, String clientId, String pass) throws Exception {
+		return loginAs(userName, clientId, pass, 200);
 	}
 
 	@Test
@@ -1358,6 +1362,83 @@ public class UserDataIntegrationTest {
 			.andReturn();
 
 		signOut(204, accessToken, oauthAdminClientId);
+	}
+	
+	@Test
+	public void testToggleEnableUserReturns404WheUserIdIsInvalid() throws Exception {
+		long invalidId = 1000L;
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		mvc
+			.perform(put("/user/admin/toggle_enable_user/" + invalidId).params(params).headers(httpHeaders)
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(404))
+			.andReturn();
+
+		signOut(204, accessToken, oauthAdminClientId);
+	}
+	
+	@Test
+	public void testToggleEnableUserSuccess() throws Exception {
+		AppUser user = userRepository.findByName("resource_admin");
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		
+		loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
+		String resourceAdminToken = (String) loginResponse.get("access_token");
+		
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		assertTrue(user.isEnabled());
+		MvcResult result = sendToggleEnableUserRequest(user, params, httpHeaders);
+
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		
+		assertTrue(responseMap.get("msg").equals(Utils.userDisabledMsg));
+		user = userRepository.findByName("resource_admin");
+		assertFalse(user.isEnabled());
+		signOut(401, resourceAdminToken, resourceAdminClientId);
+		loginAs("resource_admin", resourceAdminClientId, password, 400);
+		
+		result = sendToggleEnableUserRequest(user, params, httpHeaders);
+		responseString = result.getResponse().getContentAsString();
+		responseMap = jsonParser.parseMap(responseString);
+		assertTrue(responseMap.get("msg").equals(Utils.userEnabledMsg));
+		
+		user = userRepository.findByName("resource_admin");
+		assertTrue(user.isEnabled());
+		
+		loginResponse = loginAs("resource_admin", resourceAdminClientId, password, 200);
+		resourceAdminToken = (String) loginResponse.get("access_token");
+		signOut(204, resourceAdminToken, resourceAdminClientId);
+		signOut(204, accessToken, oauthAdminClientId);
+	}
+
+	private MvcResult sendToggleEnableUserRequest(AppUser user, MultiValueMap<String, String> params,
+			HttpHeaders httpHeaders) throws Exception {
+		MvcResult result = mvc
+			.perform(put("/user/admin/toggle_enable_user/" + user.getId()).params(params).headers(httpHeaders)
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(200))
+			.andReturn();
+		return result;
 	}
 	
 	private MvcResult sendGetUsersRequest(int page, int expectedStatus) throws Exception {
