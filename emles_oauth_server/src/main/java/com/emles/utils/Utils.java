@@ -74,6 +74,10 @@ public final class Utils {
 	public static final String userEnabledMsg = "User has been enabled.";
 
 	public static final String userDisabledMsg = "User has been disabled.";
+
+	public static final String approvalRevokedMsg = "Approval has been revoked.";
+
+	public static final String userSignedOutMsg = "User has been signed out.";
 	
     /**
      * Method used to encode user password.
