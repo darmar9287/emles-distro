@@ -1,6 +1,7 @@
 package com.emles.controller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,6 +75,64 @@ public class RegistrationController {
 
 	@Resource(name = "oauthServerTokenServices")
 	private AuthorizationServerTokenServices tokenServices;
+
+	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
+	@RequestMapping(value = "/admin/sign_user_out/{userId}", method = RequestMethod.POST)
+	public ResponseEntity<?> signUserOut(@PathVariable("userId") Long userId) {
+		Optional<AppUser> userOpt = userService.findById(userId);
+		if (userOpt.isPresent()) {
+			Map<String, Object> responseMap = new HashMap<>();
+			signOutUserRemotely(userOpt.get());
+			responseMap.put("msg", Utils.userSignedOutMsg);
+			return ResponseEntity.ok().body(responseMap);
+		}
+        return ResponseEntity.notFound().build();
+	}
+	
+	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
+	@RequestMapping(value = "/admin/revoke_approval", method = RequestMethod.POST)
+	public ResponseEntity<?> revokeApproval(@RequestBody Approval approval) {
+		Map<String, Object> responseMap = new HashMap<>();
+		removeApproval(approval);
+		responseMap.put("msg", Utils.approvalRevokedMsg);
+        return ResponseEntity.ok().body(responseMap);
+	}
+	
+	@PreAuthorize("hasAnyAuthority('ROLE_OAUTH_ADMIN', 'ROLE_PRODUCT_ADMIN', 'ROLE_USER')")
+	@RequestMapping(value = "/revoke_my_approval", method = RequestMethod.POST)
+	public ResponseEntity<?> revokeMyApproval(@RequestBody Approval approval) {
+		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+		if (approval.getUserId().equals(userId)) {
+			Map<String, Object> responseMap = new HashMap<>();
+			removeApproval(approval);
+			responseMap.put("msg", Utils.approvalRevokedMsg);
+	        return ResponseEntity.ok().body(responseMap);
+		}
+		return ResponseEntity.badRequest().build();
+	}
+	
+	@PreAuthorize("hasAnyAuthority('ROLE_OAUTH_ADMIN', 'ROLE_PRODUCT_ADMIN', 'ROLE_USER')")
+	@RequestMapping(value = "/my_approvals", method = RequestMethod.GET)
+	public ResponseEntity<?> myApprovals() {
+		AppUser user = userService.findByName(SecurityContextHolder.getContext().getAuthentication().getName()); 
+		Map<String, Object> responseMap = new HashMap<>();
+		fetchApprovalList(responseMap, user);
+		return ResponseEntity.ok().body(responseMap);
+	}
+	
+	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
+	@RequestMapping(value = "/admin/user_approvals/{userId}", method = RequestMethod.GET)
+	public ResponseEntity<?> showUserApprovals(@PathVariable("userId") Long userId) {
+		Optional<AppUser> userOpt = userService.findById(userId);
+		Map<String, Object> responseMap = new HashMap<>();
+		if (userOpt.isPresent()) {
+			AppUser user = userOpt.get();
+			fetchApprovalList(responseMap, user);
+			return ResponseEntity.ok().body(responseMap);
+		}
+
+		return ResponseEntity.notFound().build();
+	}
 
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/admin/toggle_enable_user/{userId}", method = RequestMethod.PUT)
@@ -402,5 +461,19 @@ public class RegistrationController {
 		authenticationRequest.setAuthenticated(true);
 		OAuth2AccessToken newToken = tokenServices.createAccessToken(authenticationRequest);
 		return newToken;
+	}
+	
+	private void fetchApprovalList(Map<String, Object> responseMap, AppUser user) {
+		List<Approval> approvals = clientDetailsService.listClientDetails().stream()
+				.map(clientDetails -> approvalStore.getApprovals(user.getName(), clientDetails.getClientId()))
+				.flatMap(Collection::stream)
+				.collect(Collectors.toList());
+		responseMap.put("approvals", approvals);
+	}
+	
+	private void removeApproval(Approval approval) {
+		approvalStore.revokeApprovals(Arrays.asList(approval));
+        tokenStore.findTokensByClientIdAndUserName(approval.getClientId(), approval.getUserId())
+                .forEach(tokenStore::removeAccessToken);
 	}
 }

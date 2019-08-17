@@ -29,6 +29,8 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.provider.approval.Approval;
+import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.TestPropertySource;
@@ -77,6 +79,9 @@ public class UserDataIntegrationTest {
 	
 	@Autowired
 	private AuthorityRepository authorityRepository;
+	
+	@Autowired
+	private ApprovalStore approvalStore;
 
 	private String productAdminClientId = "integration_test_product_admin";
 
@@ -1428,6 +1433,250 @@ public class UserDataIntegrationTest {
 		resourceAdminToken = (String) loginResponse.get("access_token");
 		signOut(204, resourceAdminToken, resourceAdminClientId);
 		signOut(204, accessToken, oauthAdminClientId);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testShowMyApprovals() throws Exception {
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+			.perform(get("/user/my_approvals").params(params).headers(httpHeaders)
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(200))
+			.andReturn();
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		List<Object> approvalList = (List<Object>)responseMap.get("approvals");
+		approvalList.forEach(approval -> {
+			Map<String, Object> approvalMap = (Map<String, Object>)approval;
+			assertTrue(approvalMap.get("userId").equals("oauth_admin"));
+			assertTrue(approvalMap.get("status").equals("APPROVED"));
+		});
+		signOut(204, accessToken, oauthAdminClientId);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testShowUserApprovals() throws Exception {
+		AppUser user = userRepository.findByName("resource_admin");
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		MvcResult result = fetchUserAppvoals(user.getId(), 200);
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		List<Object> approvalList = (List<Object>)responseMap.get("approvals");
+		assertTrue(approvalList.isEmpty());
+		
+		loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
+		String resourceAdminToken = (String) loginResponse.get("access_token");
+		
+		result = fetchUserAppvoals(user.getId(), 200);
+		responseString = result.getResponse().getContentAsString();
+		responseMap = jsonParser.parseMap(responseString);
+		approvalList = (List<Object>)responseMap.get("approvals");
+		approvalList.forEach(approval -> {
+			Map<String, Object> approvalMap = (Map<String, Object>)approval;
+			assertTrue(approvalMap.get("userId").equals("resource_admin"));
+			assertTrue(approvalMap.get("status").equals("APPROVED"));
+		});
+		signOut(204, accessToken, oauthAdminClientId);
+		signOut(204, resourceAdminToken, resourceAdminClientId);
+	}
+	
+	@Test
+	public void testRevokeMyApproval() throws Exception {
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+		
+		 List<Approval> approvals = approvalStore.getApprovals("oauth_admin", oauthAdminClientId)
+			.stream()
+			.filter(approval -> approval.getScope().equals("write"))
+			.collect(Collectors.toList());
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+			.perform(post("/user/revoke_my_approval").params(params).headers(httpHeaders)
+					.content(objectMapper.writeValueAsString(approvals.get(0)))
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(200))
+			.andReturn();
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		
+		assertTrue(responseMap.get("msg").equals(Utils.approvalRevokedMsg));
+		signOut(401, accessToken, oauthAdminClientId);
+	}
+	
+	@Test
+	public void testRevokeMyApprovalFailsWhenUserIdIsMalformed() throws Exception {
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+		
+		 List<Approval> approvals = approvalStore.getApprovals("oauth_admin", oauthAdminClientId)
+			.stream()
+			.filter(approval -> approval.getScope().equals("write"))
+			.collect(Collectors.toList());
+		
+		 Approval approval = approvals.get(0);
+		 approval.setUserId("resource_admin");
+		 
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		mvc
+			.perform(post("/user/revoke_my_approval").params(params).headers(httpHeaders)
+					.content(objectMapper.writeValueAsString(approval))
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(400))
+			.andReturn();
+		signOut(204, accessToken, oauthAdminClientId);
+	}
+	
+	@Test
+	public void testRevokeMyApprovalByAdmin() throws Exception {
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		
+		loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
+		String resourceAdminToken = (String) loginResponse.get("access_token");
+		
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+		
+		 List<Approval> approvals = approvalStore.getApprovals("resource_admin", resourceAdminClientId)
+			.stream()
+			.filter(approval -> approval.getScope().equals("write"))
+			.collect(Collectors.toList());
+		
+		 Approval approval = approvals.get(0);
+		 approval.setUserId("resource_admin");
+		 
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+			.perform(post("/user/admin/revoke_approval").params(params).headers(httpHeaders)
+					.content(objectMapper.writeValueAsString(approval))
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(200))
+			.andReturn();
+		
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		
+		assertTrue(responseMap.get("msg").equals(Utils.approvalRevokedMsg));
+		
+		signOut(204, accessToken, oauthAdminClientId);
+		signOut(401, resourceAdminToken, resourceAdminClientId);
+	}
+	
+	@Test
+	public void testSignOutUserByAdmin() throws Exception {
+		AppUser user = userRepository.findByName("resource_admin");
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		
+		loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
+		String resourceAdminToken = (String) loginResponse.get("access_token");
+		
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+		 
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+			.perform(post("/user/admin/sign_user_out/" + user.getId()).params(params).headers(httpHeaders)
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(200))
+			.andReturn();
+		
+		String responseString = result.getResponse().getContentAsString();
+		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		
+		assertTrue(responseMap.get("msg").equals(Utils.userSignedOutMsg));
+		
+		signOut(204, accessToken, oauthAdminClientId);
+		signOut(401, resourceAdminToken, resourceAdminClientId);
+	}
+	
+	@Test
+	public void testSignOutUserByAdminReturns404WhenUserIdIsInvalid() throws Exception {
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+		 
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		mvc
+			.perform(post("/user/admin/sign_user_out/" + 1000L).params(params).headers(httpHeaders)
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(404))
+			.andReturn();
+
+		signOut(204, accessToken, oauthAdminClientId);
+	}
+	
+	@Test
+	public void testShowUserApprovalsReturns404WhenUserIdIsInvalid() throws Exception {
+		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
+		accessToken = (String) loginResponse.get("access_token");
+		fetchUserAppvoals(1000L, 404);
+		signOut(204, accessToken, oauthAdminClientId);
+	}
+
+	private MvcResult fetchUserAppvoals(long userId, int expectedStatus) throws Exception {
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", oauthAdminClientId);
+		params.add("username", "resource_admin");
+		params.add("password", password);
+		
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + accessToken);
+		MvcResult result = mvc
+			.perform(get("/user/admin/user_approvals/" + userId).params(params).headers(httpHeaders)
+					.contentType(MediaType.APPLICATION_JSON)
+					.accept("application/json;charset=UTF-8"))
+			.andExpect(status().is(expectedStatus))
+			.andReturn();
+		return result;
 	}
 
 	private MvcResult sendToggleEnableUserRequest(AppUser user, MultiValueMap<String, String> params,
