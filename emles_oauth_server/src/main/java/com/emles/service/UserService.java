@@ -60,12 +60,12 @@ public interface UserService {
 	boolean toggleEnableUser(long userId);
 
 	void saveNewUserWithStandardRole(@Valid AppUser user);
-	
+
 	Page<UserSimplified> listUsers(Pageable pageable);
 
 	UserSimplified findSimplifiedByName(String name);
 
 	void updateUserRoles(AppUser appUser, List<Long> authorityIds);
-	
+
 	void deleteUser(Long userId);
 }
