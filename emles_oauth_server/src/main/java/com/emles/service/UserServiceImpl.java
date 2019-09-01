@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Errors;
-
 import com.emles.model.AccountActivationToken;
 import com.emles.model.AppUser;
 import com.emles.model.Authority;
@@ -42,10 +40,10 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private PasswordTokenRepository passwordTokenRepository;
-	
+
 	@Autowired
 	private AuthorityRepository authorityRepository;
-	
+
 	@Autowired
 	private AccountActivationTokenRepository accountActivationTokenRepository;
 
@@ -153,12 +151,11 @@ public class UserServiceImpl implements UserService {
 	public void updateUserPassword(AppUser signedIn, UserPasswords passwords) {
 		String encryptedPassword = passwordEncoder.encode(passwords.getNewPassword());
 		signedIn.setPassword(encryptedPassword);
-		userRepository.save(signedIn);	
+		userRepository.save(signedIn);
 	}
 
 	@Transactional
-	public void validateUniqueValuesForUserData(UserData userData, List<String> errorMessages,
-			AppUser signedIn) {
+	public void validateUniqueValuesForUserData(UserData userData, List<String> errorMessages, AppUser signedIn) {
 		String userDataPhone = userData.getPhone().replaceAll("\\-", "");
 		String signedInUserDataPhone = signedIn.getPhone().replaceAll("\\-", "");
 		if (!userDataPhone.equals(signedInUserDataPhone)) {
@@ -168,28 +165,28 @@ public class UserServiceImpl implements UserService {
 			checkIfEmailExistsInDb(userData.getEmail(), errorMessages);
 		}
 	}
-	
+
 	@Transactional
 	public AppUser createUser(AppUser user, Set<Authority> userRoles) {
 		String encryptedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(encryptedPassword);
-        user.setAuthorities(new ArrayList<Authority>());
-        user.setEnabled(false);
-        user.setLastPasswordResetDate(Date.from(Instant.now()));
-        
-        for (Authority ur : userRoles) {
-            authorityRepository.save(ur);
-        }
-        
-        user.getAuthorities().addAll(userRoles);
+		user.setPassword(encryptedPassword);
+		user.setAuthorities(new ArrayList<Authority>());
+		user.setEnabled(false);
+		user.setLastPasswordResetDate(Date.from(Instant.now()));
 
-        return userRepository.save(user);
+		for (Authority ur : userRoles) {
+			authorityRepository.save(ur);
+		}
+
+		user.getAuthorities().addAll(userRoles);
+
+		return userRepository.save(user);
 	}
 
 	@Transactional
 	public AppUser createUser(AppUser user) {
 		user.setEnabled(true);
-		for(Authority ur : user.getAuthorities()) {
+		for (Authority ur : user.getAuthorities()) {
 			authorityRepository.save(ur);
 		}
 		return userRepository.save(user);
@@ -203,17 +200,15 @@ public class UserServiceImpl implements UserService {
 
 	@Transactional
 	public boolean validateAccountActivationToken(long id, String token) {
-		AccountActivationToken passToken = 
-    			accountActivationTokenRepository.findByToken(token);
-        if ((passToken == null) || (passToken.getUser()
-            .getId() != id)) {
-            return false;
-        }
-        AppUser tokenUser = passToken.getUser();
-        tokenUser.setEnabled(true);
-        userRepository.save(tokenUser);
-        accountActivationTokenRepository.delete(passToken);
-        return true;
+		AccountActivationToken passToken = accountActivationTokenRepository.findByToken(token);
+		if ((passToken == null) || (passToken.getUser().getId() != id)) {
+			return false;
+		}
+		AppUser tokenUser = passToken.getUser();
+		tokenUser.setEnabled(true);
+		userRepository.save(tokenUser);
+		accountActivationTokenRepository.delete(passToken);
+		return true;
 	}
 
 	@Transactional
@@ -223,7 +218,7 @@ public class UserServiceImpl implements UserService {
 		userRepository.save(user);
 		return user.isEnabled();
 	}
-	
+
 	@Transactional
 	public void saveNewUserWithStandardRole(AppUser user) {
 		Set<Authority> userRoles = new HashSet<>();
@@ -231,17 +226,17 @@ public class UserServiceImpl implements UserService {
 		userRoles.add(userRoleAuthority);
 		this.createUser(user, userRoles);
 	}
-	
+
 	@Transactional
 	public Page<UserSimplified> listUsers(Pageable pageable) {
 		return userRepository.findAllBy(pageable);
 	}
-	
+
 	@Transactional
 	public UserSimplified findSimplifiedByName(String name) {
 		return userRepository.findSimplifiedByName(name);
 	}
-	
+
 	@Transactional
 	public void updateUserRoles(AppUser appUser, List<Long> authorityIds) {
 		Iterable<Authority> authorities = authorityRepository.findAllById(authorityIds);
@@ -250,7 +245,7 @@ public class UserServiceImpl implements UserService {
 		appUser.setAuthorities(authoritiesList);
 		userRepository.save(appUser);
 	}
-	
+
 	@Transactional
 	public void deleteUser(Long userId) {
 		userRepository.deleteById(userId);
@@ -279,7 +274,7 @@ public class UserServiceImpl implements UserService {
 			errorMessages.add(Utils.userNameExistsMsg);
 		}
 	}
-	
+
 	private boolean isTokenExpired(PasswordResetToken passToken) {
 		Calendar cal = Calendar.getInstance();
 		return (passToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0;

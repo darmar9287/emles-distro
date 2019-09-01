@@ -73,13 +73,13 @@ public class UserDataIntegrationTest {
 
 	@Autowired
 	private AppUserRepository userRepository;
-	
+
 	@Autowired
 	private AccountActivationTokenRepository accountActivationRepository;
-	
+
 	@Autowired
 	private AuthorityRepository authorityRepository;
-	
+
 	@Autowired
 	private ApprovalStore approvalStore;
 
@@ -100,7 +100,8 @@ public class UserDataIntegrationTest {
 		jsonParser = JsonParserFactory.getJsonParser();
 	}
 
-	private Map<String, Object> loginAs(String userName, String clientId, String pass, int expectedStatus) throws Exception {
+	private Map<String, Object> loginAs(String userName, String clientId, String pass, int expectedStatus)
+			throws Exception {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", clientId);
@@ -110,13 +111,13 @@ public class UserDataIntegrationTest {
 		MvcResult result = mvc
 				.perform(post("/oauth/token").params(params).with(httpBasic(clientId, password))
 						.accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(expectedStatus)).andExpect(content().contentType("application/json;charset=UTF-8"))
-				.andReturn();
+				.andExpect(status().is(expectedStatus))
+				.andExpect(content().contentType("application/json;charset=UTF-8")).andReturn();
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 		return responseMap;
 	}
-	
+
 	private Map<String, Object> loginAs(String userName, String clientId, String pass) throws Exception {
 		return loginAs(userName, clientId, pass, 200);
 	}
@@ -369,7 +370,7 @@ public class UserDataIntegrationTest {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-				.perform(post("/user/admin/change_password/" + userId).params(params).headers(httpHeaders)
+				.perform(post("/admin/user/change_password/" + userId).params(params).headers(httpHeaders)
 						.content(objectMapper.writeValueAsString(newCredentials))
 						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
 				.andExpect(status().is(200)).andExpect(content().contentType("application/json;charset=UTF-8"))
@@ -406,7 +407,7 @@ public class UserDataIntegrationTest {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-				.perform(post("/user/admin/change_password/" + userId).params(params).headers(httpHeaders)
+				.perform(post("/admin/user/change_password/" + userId).params(params).headers(httpHeaders)
 						.content(objectMapper.writeValueAsString(newCredentials))
 						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
 				.andExpect(status().is(422)).andExpect(content().contentType("application/json;charset=UTF-8"))
@@ -644,7 +645,7 @@ public class UserDataIntegrationTest {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-				.perform(put("/user/admin/update_account/" + userId).params(params).headers(httpHeaders)
+				.perform(put("/admin/user/update_account/" + userId).params(params).headers(httpHeaders)
 						.content(objectMapper.writeValueAsString(userData)).contentType(MediaType.APPLICATION_JSON)
 						.accept("application/json;charset=UTF-8"))
 				.andExpect(status().is(422)).andExpect(content().contentType("application/json;charset=UTF-8"))
@@ -678,7 +679,7 @@ public class UserDataIntegrationTest {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-				.perform(put("/user/admin/update_account/" + userId).params(params).headers(httpHeaders)
+				.perform(put("/admin/user/update_account/" + userId).params(params).headers(httpHeaders)
 						.content(objectMapper.writeValueAsString(userData)).contentType(MediaType.APPLICATION_JSON)
 						.accept("application/json;charset=UTF-8"))
 				.andExpect(status().is(200)).andExpect(content().contentType("application/json;charset=UTF-8"))
@@ -690,7 +691,7 @@ public class UserDataIntegrationTest {
 
 		signOut(204, accessToken, oauthAdminClientId);
 	}
-	
+
 	@Test
 	public void testSignUpSuccess() throws Exception {
 
@@ -701,7 +702,7 @@ public class UserDataIntegrationTest {
 		newUser.setPassword(newUserPassword);
 		newUser.setPasswordConfirmation(newUserPassword);
 		newUser.setPhone("600600666");
-		
+
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", oauthAdminClientId);
@@ -713,9 +714,9 @@ public class UserDataIntegrationTest {
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 		assertTrue(responseMap.get("msg").equals(Utils.signUpSuccessMsg));
-		
+
 		AppUser found = userRepository.findByName(newUser.getName());
-		
+
 		assertTrue(found != null);
 		assertTrue(found.getEmail().equals(newUser.getEmail()));
 		assertTrue(found.getName().equals(newUser.getName()));
@@ -723,11 +724,11 @@ public class UserDataIntegrationTest {
 		assertTrue(found.getAuthorities().size() == 1);
 		assertTrue(found.getAuthorities().get(0).getAuthority().equals("ROLE_USER"));
 		assertFalse(found.isEnabled());
-		
+
 		AccountActivationToken activationToken = accountActivationRepository.findByUser(found);
 		assertTrue(activationToken != null);
 	}
-	
+
 	@Test
 	public void testSignUpReturns422WhenUniquePramsExists() throws Exception {
 
@@ -738,7 +739,7 @@ public class UserDataIntegrationTest {
 		newUser.setPassword(newUserPassword);
 		newUser.setPasswordConfirmation(newUserPassword);
 		newUser.setPhone("700700700");
-		
+
 		MvcResult result = sendSignUpRequest(newUser, 422);
 
 		String responseString = result.getResponse().getContentAsString();
@@ -751,7 +752,7 @@ public class UserDataIntegrationTest {
 		assertTrue(errors.contains(Utils.phoneNumberExistsMsg));
 		assertTrue(errors.contains(Utils.emailExistsMsg));
 	}
-	
+
 	@Test
 	public void testSignUpReturns422WhenPasswordsDoNotMatch() throws Exception {
 
@@ -762,7 +763,7 @@ public class UserDataIntegrationTest {
 		newUser.setPassword(newUserPassword);
 		newUser.setPasswordConfirmation(newUserPassword + "s");
 		newUser.setPhone("700720700");
-		
+
 		MvcResult result = sendSignUpRequest(newUser, 422);
 
 		String responseString = result.getResponse().getContentAsString();
@@ -773,7 +774,7 @@ public class UserDataIntegrationTest {
 		assertTrue(errors.size() == 1);
 		assertTrue(errors.contains(Utils.passwordsNotEqualMsg));
 	}
-	
+
 	@Test
 	public void testSignUpReturns422WhenPasswordIsInvalid() throws Exception {
 
@@ -784,7 +785,7 @@ public class UserDataIntegrationTest {
 		newUser.setPassword("invalid");
 		newUser.setPasswordConfirmation(newUserPassword);
 		newUser.setPhone("700720700");
-		
+
 		MvcResult result = sendSignUpRequest(newUser, 422);
 
 		String responseString = result.getResponse().getContentAsString();
@@ -796,7 +797,7 @@ public class UserDataIntegrationTest {
 		assertTrue(errors.contains(Utils.passwordsNotEqualMsg));
 		assertTrue(errors.contains(Utils.invalidPasswordMsg));
 	}
-	
+
 	@Test
 	public void testSignUpReturns422WhenPasswordConfirmationIsInvalid() throws Exception {
 
@@ -807,7 +808,7 @@ public class UserDataIntegrationTest {
 		newUser.setPassword(newUserPassword);
 		newUser.setPasswordConfirmation("invalid");
 		newUser.setPhone("700720700");
-		
+
 		MvcResult result = sendSignUpRequest(newUser, 422);
 
 		String responseString = result.getResponse().getContentAsString();
@@ -819,7 +820,7 @@ public class UserDataIntegrationTest {
 		assertTrue(errors.contains(Utils.passwordsNotEqualMsg));
 		assertTrue(errors.contains(Utils.invalidPasswordConfirmationMsg));
 	}
-	
+
 	@Test
 	public void testSignUpReturns422WhenUsernameIsTooShort() throws Exception {
 
@@ -830,7 +831,7 @@ public class UserDataIntegrationTest {
 		newUser.setPassword(newUserPassword);
 		newUser.setPasswordConfirmation(newUserPassword);
 		newUser.setPhone("700720700");
-		
+
 		MvcResult result = sendSignUpRequest(newUser, 422);
 
 		String responseString = result.getResponse().getContentAsString();
@@ -841,7 +842,7 @@ public class UserDataIntegrationTest {
 		assertTrue(errors.size() == 1);
 		assertTrue(errors.contains(Utils.userNameRequirementMsg));
 	}
-	
+
 	@Test
 	public void testSignUpReturns422WhenUsernameIsTooLong() throws Exception {
 
@@ -852,7 +853,7 @@ public class UserDataIntegrationTest {
 		newUser.setPassword(newUserPassword);
 		newUser.setPasswordConfirmation(newUserPassword);
 		newUser.setPhone("700720700");
-		
+
 		MvcResult result = sendSignUpRequest(newUser, 422);
 
 		String responseString = result.getResponse().getContentAsString();
@@ -863,7 +864,7 @@ public class UserDataIntegrationTest {
 		assertTrue(errors.size() == 1);
 		assertTrue(errors.contains(Utils.userNameRequirementMsg));
 	}
-	
+
 	@Test
 	public void testSignUpReturns422WhenUsernameContainsForbiddenChars() throws Exception {
 
@@ -874,7 +875,7 @@ public class UserDataIntegrationTest {
 		newUser.setPassword(newUserPassword);
 		newUser.setPasswordConfirmation(newUserPassword);
 		newUser.setPhone("700720700");
-		
+
 		MvcResult result = sendSignUpRequest(newUser, 422);
 
 		String responseString = result.getResponse().getContentAsString();
@@ -885,13 +886,13 @@ public class UserDataIntegrationTest {
 		assertTrue(errors.size() == 1);
 		assertTrue(errors.contains(Utils.userNameRequirementMsg));
 	}
-	
+
 	@Test
 	public void testCreateUserByAdminSuccess() throws Exception {
 
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		
+
 		String newUserPassword = "h4$h3dPa$$";
 		Authority productAdminAuthority = authorityRepository.findByAuthority("ROLE_PRODUCT_ADMIN");
 		Authority userAuthority = authorityRepository.findByAuthority("ROLE_USER");
@@ -903,46 +904,45 @@ public class UserDataIntegrationTest {
 		newUser.setPasswordConfirmation(newUserPassword);
 		newUser.setPhone("600600666");
 		newUser.setAuthorities(authorities);
-		
+
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "oauth_admin");
 		params.add("password", password);
-		
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-				.perform(post("/user/admin/create_user").params(params).headers(httpHeaders)
-						.content(objectMapper.writeValueAsString(newUser))
-						.contentType(MediaType.APPLICATION_JSON)
+				.perform(post("/admin/user/create_user").params(params).headers(httpHeaders)
+						.content(objectMapper.writeValueAsString(newUser)).contentType(MediaType.APPLICATION_JSON)
 						.accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200))
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(status().is(200)).andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
 
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 		assertTrue(responseMap.get("msg").equals(Utils.userCreatedSuccessMsg));
-		
+
 		AppUser found = userRepository.findByName(newUser.getName());
-		
+
 		assertTrue(found != null);
 		assertTrue(found.getEmail().equals(newUser.getEmail()));
 		assertTrue(found.getName().equals(newUser.getName()));
 		assertTrue(found.getPhone().equals(newUser.getPhone()));
 		assertTrue(found.getAuthorities().size() == 2);
-		List<String> authorityNames = found.getAuthorities().stream().map(Authority::getAuthority).collect(Collectors.toList());
+		List<String> authorityNames = found.getAuthorities().stream().map(Authority::getAuthority)
+				.collect(Collectors.toList());
 		assertTrue(authorityNames.contains("ROLE_PRODUCT_ADMIN"));
 		assertTrue(authorityNames.contains("ROLE_USER"));
 		assertTrue(found.isEnabled());
-		
+
 		AccountActivationToken activationToken = accountActivationRepository.findByUser(found);
 		assertTrue(activationToken == null);
-		
+
 		signOut(204, accessToken, oauthAdminClientId);
 	}
-	
+
 	@Test
 	public void testSignUpAndActivationSuccess() throws Exception {
 
@@ -955,26 +955,25 @@ public class UserDataIntegrationTest {
 		newUser.setPhone("600600666");
 
 		MvcResult result = sendSignUpRequest(newUser, 200);
-		
+
 		AppUser found = userRepository.findByName(newUser.getName());
-		
+
 		AccountActivationToken activationToken = accountActivationRepository.findByUser(found);
 		assertTrue(activationToken != null);
-		
+
 		result = mvc
-				.perform(post("/user/validate_user_account?id=" + found.getId() + "&token=" + activationToken.getToken())
-						.content(objectMapper.writeValueAsString(newUser))
-						.contentType(MediaType.APPLICATION_JSON)
-						.accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200))
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.perform(
+						post("/user/validate_user_account?id=" + found.getId() + "&token=" + activationToken.getToken())
+								.content(objectMapper.writeValueAsString(newUser))
+								.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200)).andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
-		
+
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 		assertTrue(responseMap.get("msg").equals(Utils.accountActivatedMsg));
 	}
-	
+
 	@Test
 	public void testSignUpAndActivationReturns422WhenUserIdIsInvalid() throws Exception {
 
@@ -987,26 +986,24 @@ public class UserDataIntegrationTest {
 		newUser.setPhone("600600666");
 
 		MvcResult result = sendSignUpRequest(newUser, 200);
-		
+
 		AppUser found = userRepository.findByName(newUser.getName());
-		
+
 		AccountActivationToken activationToken = accountActivationRepository.findByUser(found);
 		assertTrue(activationToken != null);
-		
+
 		result = mvc
 				.perform(post("/user/validate_user_account?id=" + 10000L + "&token=" + activationToken.getToken())
-						.content(objectMapper.writeValueAsString(newUser))
-						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(newUser)).contentType(MediaType.APPLICATION_JSON)
 						.accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(422))
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(status().is(422)).andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
-		
+
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 		assertTrue(responseMap.get("error").equals(Utils.invalidActivationTokenMsg));
 	}
-	
+
 	@Test
 	public void testSignUpAndActivationReturns422WhenUserTokenIsInvalid() throws Exception {
 
@@ -1019,32 +1016,30 @@ public class UserDataIntegrationTest {
 		newUser.setPhone("600600666");
 
 		MvcResult result = sendSignUpRequest(newUser, 200);
-		
+
 		AppUser found = userRepository.findByName(newUser.getName());
-		
+
 		AccountActivationToken activationToken = accountActivationRepository.findByUser(found);
 		assertTrue(activationToken != null);
-		
+
 		result = mvc
 				.perform(post("/user/validate_user_account?id=" + found.getId() + "&token=" + "invalid")
-						.content(objectMapper.writeValueAsString(newUser))
-						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(newUser)).contentType(MediaType.APPLICATION_JSON)
 						.accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(422))
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andExpect(status().is(422)).andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
-		
+
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 		assertTrue(responseMap.get("error").equals(Utils.invalidActivationTokenMsg));
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testPaginationOfUsers() throws Exception {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		
+
 		int numOfRequests = 3;
 		for (int i = 0; i < numOfRequests; i++) {
 			MvcResult result = sendGetUsersRequest(i, 200);
@@ -1052,7 +1047,7 @@ public class UserDataIntegrationTest {
 			String responseString = result.getResponse().getContentAsString();
 			Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 
-			List<Object> users = (List<Object>)responseMap.get("content");
+			List<Object> users = (List<Object>) responseMap.get("content");
 			responseMap = (Map<String, Object>) users.get(0);
 			assertTrue(responseMap.get("id") != null);
 			assertTrue(responseMap.get("name") != null);
@@ -1072,34 +1067,32 @@ public class UserDataIntegrationTest {
 		accessToken = (String) loginResponse.get("access_token");
 		sendGetUsersRequest(0, 403);
 		signOut(204, accessToken, resourceAdminClientId);
-		
+
 		loginResponse = loginAs("product_admin", productAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 		sendGetUsersRequest(0, 403);
 		signOut(204, accessToken, productAdminClientId);
 	}
-	
+
 	@Test
 	public void testShowMyAccount() throws Exception {
 		Map<String, Object> loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		
+
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", resourceAdminClientId);
 		params.add("username", "resource_admin");
 		params.add("password", password);
-		
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
 				.perform(get("/user/my_account").params(params).headers(httpHeaders)
-						.contentType(MediaType.APPLICATION_JSON)
-						.accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200))
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200)).andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
-		
+
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 
@@ -1113,29 +1106,27 @@ public class UserDataIntegrationTest {
 		assertTrue(responseMap.get("last_password_reset_date") == null);
 		signOut(204, accessToken, resourceAdminClientId);
 	}
-	
+
 	@Test
 	public void testShowUserForAdminSuccess() throws Exception {
 		AppUser user = userRepository.findByName("resource_admin");
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		
+
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "oauth_admin");
 		params.add("password", password);
-		
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-				.perform(get("/user/admin/show/" + user.getId()).params(params).headers(httpHeaders)
-						.contentType(MediaType.APPLICATION_JSON)
-						.accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200))
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.perform(get("/admin/user/show/" + user.getId()).params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200)).andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
-		
+
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 
@@ -1150,39 +1141,36 @@ public class UserDataIntegrationTest {
 		assertTrue(responseMap.get("lastPasswordResetDate") == null);
 		signOut(204, accessToken, oauthAdminClientId);
 	}
-	
+
 	@Test
 	public void testShowUserForAdminReturns404WhenUserIdIsInvalid() throws Exception {
 		long userId = 1000L;
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		
+
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "oauth_admin");
 		params.add("password", password);
-		
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		mvc
-				.perform(get("/user/admin/show/" + userId).params(params).headers(httpHeaders)
-						.contentType(MediaType.APPLICATION_JSON)
-						.accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(404))
-				.andReturn();
-		
+		mvc.perform(get("/admin/user/show/" + userId).params(params).headers(httpHeaders)
+				.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(404)).andReturn();
+
 		signOut(204, accessToken, oauthAdminClientId);
 	}
-	
+
 	@Test
 	public void testUpdateUserAuthoritySuccess() throws Exception {
-		
+
 		AppUser resourceAdmin = userRepository.findByName("resource_admin");
 		Authority productAdminAuthority = authorityRepository.findByAuthority("ROLE_PRODUCT_ADMIN");
 		Authority oauthAdminAuthority = authorityRepository.findByAuthority("ROLE_OAUTH_ADMIN");
-		List<Long> authorityIds = Arrays.asList(productAdminAuthority, oauthAdminAuthority)
-				.stream().map(authority -> authority.getId()).collect(Collectors.toList());
+		List<Long> authorityIds = Arrays.asList(productAdminAuthority, oauthAdminAuthority).stream()
+				.map(authority -> authority.getId()).collect(Collectors.toList());
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -1191,33 +1179,35 @@ public class UserDataIntegrationTest {
 		params.add("username", "oauth_admin");
 		params.add("password", password);
 
-		List<String> resourceAdminAuthorities = resourceAdmin.getAuthorities().stream().map(Authority::getAuthority).collect(Collectors.toList());
+		List<String> resourceAdminAuthorities = resourceAdmin.getAuthorities().stream().map(Authority::getAuthority)
+				.collect(Collectors.toList());
 		assertTrue(resourceAdminAuthorities.contains("ROLE_USER"));
 		assertFalse(resourceAdminAuthorities.contains("ROLE_PRODUCT_ADMIN"));
 		assertFalse(resourceAdminAuthorities.contains("ROLE_OAUTH_ADMIN"));
-		
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-				.perform(put("/user/admin/" + resourceAdmin.getId() + "/update_roles").params(params).headers(httpHeaders)
-						.content(objectMapper.writeValueAsString(authorityIds)).contentType(MediaType.APPLICATION_JSON)
-						.accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200))
-				.andExpect(content().contentType("application/json;charset=UTF-8")).andReturn();
-		
+				.perform(put("/admin/user/" + resourceAdmin.getId() + "/update_roles").params(params)
+						.headers(httpHeaders).content(objectMapper.writeValueAsString(authorityIds))
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200)).andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
 		resourceAdmin = userRepository.findByName("resource_admin");
-		resourceAdminAuthorities = resourceAdmin.getAuthorities().stream().map(Authority::getAuthority).collect(Collectors.toList());
+		resourceAdminAuthorities = resourceAdmin.getAuthorities().stream().map(Authority::getAuthority)
+				.collect(Collectors.toList());
 		assertFalse(resourceAdminAuthorities.contains("ROLE_USER"));
 		assertTrue(resourceAdminAuthorities.contains("ROLE_PRODUCT_ADMIN"));
 		assertTrue(resourceAdminAuthorities.contains("ROLE_OAUTH_ADMIN"));
 		assertTrue(responseMap.get("msg").equals(Utils.updateUserDataSuccessMsg));
 	}
-	
+
 	@Test
 	public void testUpdateUserAuthorityReturns404WhenUserIdIsNotFound() throws Exception {
-		
+
 		long invalidUserId = 1000L;
 		List<Long> authorityIds = Arrays.asList(1L, 2L);
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
@@ -1227,16 +1217,14 @@ public class UserDataIntegrationTest {
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "oauth_admin");
 		params.add("password", password);
-		
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		mvc
-			.perform(put("/user/admin/" + invalidUserId + "/update_roles").params(params).headers(httpHeaders)
-					.content(objectMapper.writeValueAsString(authorityIds)).contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(404));
+		mvc.perform(put("/admin/user/" + invalidUserId + "/update_roles").params(params).headers(httpHeaders)
+				.content(objectMapper.writeValueAsString(authorityIds)).contentType(MediaType.APPLICATION_JSON)
+				.accept("application/json;charset=UTF-8")).andExpect(status().is(404));
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testShowAuthorities() throws Exception {
@@ -1247,27 +1235,25 @@ public class UserDataIntegrationTest {
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "oauth_admin");
 		params.add("password", password);
-		
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-			.perform(get("/authority/list").params(params).headers(httpHeaders)
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(200))
-			.andReturn();
+				.perform(get("/authority/list").params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200)).andReturn();
 		String responseString = result.getResponse().getContentAsString();
 		List<Object> responseList = jsonParser.parseList(responseString);
 		assertTrue(responseList.size() == 3);
 		responseList.forEach(authorityObj -> {
-			Map<String, Object> authorityMap = (Map<String, Object>)authorityObj;
+			Map<String, Object> authorityMap = (Map<String, Object>) authorityObj;
 			Set<String> authorityKeys = authorityMap.keySet();
 			assertTrue(authorityKeys.size() == 2);
 			assertTrue(authorityKeys.contains("id"));
 			assertTrue(authorityKeys.contains("authority"));
 		});
 	}
-	
+
 	@Test
 	public void testShowAuthoritiesShouldReturn403WhenUserIsNotOauthAdmin() throws Exception {
 		Map<String, Object> loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
@@ -1277,17 +1263,13 @@ public class UserDataIntegrationTest {
 		params.add("client_id", resourceAdminClientId);
 		params.add("username", "resource_admin");
 		params.add("password", password);
-		
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		mvc
-			.perform(get("/authority/list").params(params).headers(httpHeaders)
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(403))
-			.andReturn();
+		mvc.perform(get("/authority/list").params(params).headers(httpHeaders).contentType(MediaType.APPLICATION_JSON)
+				.accept("application/json;charset=UTF-8")).andExpect(status().is(403)).andReturn();
 	}
-	
+
 	@Test
 	public void testDeleteMyAccount() throws Exception {
 		AppUser user = userRepository.findByName("resource_admin");
@@ -1298,25 +1280,23 @@ public class UserDataIntegrationTest {
 		params.add("client_id", resourceAdminClientId);
 		params.add("username", "resource_admin");
 		params.add("password", password);
-		
+
 		assertTrue(user != null);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-			.perform(delete("/user/my_account/delete").params(params).headers(httpHeaders)
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(200))
-			.andReturn();
+				.perform(delete("/user/my_account/delete").params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200)).andReturn();
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
-		
+
 		user = userRepository.findByName("resource_admin");
 		assertTrue(user == null);
 		assertTrue(responseMap.get("msg").equals(Utils.accountRemovedMsg));
 		signOut(401, accessToken, resourceAdminClientId);
 	}
-	
+
 	@Test
 	public void testDeleteAccountByAdminSuccess() throws Exception {
 		AppUser user = userRepository.findByName("resource_admin");
@@ -1327,25 +1307,23 @@ public class UserDataIntegrationTest {
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "resource_admin");
 		params.add("password", password);
-		
+
 		assertTrue(user != null);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-			.perform(delete("/user/admin/delete_account/" + user.getId()).params(params).headers(httpHeaders)
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(200))
-			.andReturn();
+				.perform(delete("/admin/user/delete_account/" + user.getId()).params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200)).andReturn();
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
-		
+
 		user = userRepository.findByName("resource_admin");
 		assertTrue(user == null);
 		assertTrue(responseMap.get("msg").equals(Utils.accountRemovedMsg));
 		signOut(204, accessToken, oauthAdminClientId);
 	}
-	
+
 	@Test
 	public void testDeleteAccountByAdminReturns404WheUserIdIsInvalid() throws Exception {
 		long invalidId = 1000L;
@@ -1359,16 +1337,13 @@ public class UserDataIntegrationTest {
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		mvc
-			.perform(delete("/user/admin/delete_account/" + invalidId).params(params).headers(httpHeaders)
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(404))
-			.andReturn();
+		mvc.perform(delete("/admin/user/delete_account/" + invalidId).params(params).headers(httpHeaders)
+				.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(404)).andReturn();
 
 		signOut(204, accessToken, oauthAdminClientId);
 	}
-	
+
 	@Test
 	public void testToggleEnableUserReturns404WheUserIdIsInvalid() throws Exception {
 		long invalidId = 1000L;
@@ -1382,25 +1357,22 @@ public class UserDataIntegrationTest {
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		mvc
-			.perform(put("/user/admin/toggle_enable_user/" + invalidId).params(params).headers(httpHeaders)
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(404))
-			.andReturn();
+		mvc.perform(put("/admin/user/toggle_enable_user/" + invalidId).params(params).headers(httpHeaders)
+				.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(404)).andReturn();
 
 		signOut(204, accessToken, oauthAdminClientId);
 	}
-	
+
 	@Test
 	public void testToggleEnableUserSuccess() throws Exception {
 		AppUser user = userRepository.findByName("resource_admin");
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		
+
 		loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
 		String resourceAdminToken = (String) loginResponse.get("access_token");
-		
+
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", oauthAdminClientId);
@@ -1414,27 +1386,27 @@ public class UserDataIntegrationTest {
 
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
-		
+
 		assertTrue(responseMap.get("msg").equals(Utils.userDisabledMsg));
 		user = userRepository.findByName("resource_admin");
 		assertFalse(user.isEnabled());
 		signOut(401, resourceAdminToken, resourceAdminClientId);
 		loginAs("resource_admin", resourceAdminClientId, password, 400);
-		
+
 		result = sendToggleEnableUserRequest(user, params, httpHeaders);
 		responseString = result.getResponse().getContentAsString();
 		responseMap = jsonParser.parseMap(responseString);
 		assertTrue(responseMap.get("msg").equals(Utils.userEnabledMsg));
-		
+
 		user = userRepository.findByName("resource_admin");
 		assertTrue(user.isEnabled());
-		
+
 		loginResponse = loginAs("resource_admin", resourceAdminClientId, password, 200);
 		resourceAdminToken = (String) loginResponse.get("access_token");
 		signOut(204, resourceAdminToken, resourceAdminClientId);
 		signOut(204, accessToken, oauthAdminClientId);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testShowMyApprovals() throws Exception {
@@ -1445,26 +1417,24 @@ public class UserDataIntegrationTest {
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "resource_admin");
 		params.add("password", password);
-		
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-			.perform(get("/user/my_approvals").params(params).headers(httpHeaders)
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(200))
-			.andReturn();
+				.perform(get("/user/my_approvals").params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200)).andReturn();
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
-		List<Object> approvalList = (List<Object>)responseMap.get("approvals");
+		List<Object> approvalList = (List<Object>) responseMap.get("approvals");
 		approvalList.forEach(approval -> {
-			Map<String, Object> approvalMap = (Map<String, Object>)approval;
+			Map<String, Object> approvalMap = (Map<String, Object>) approval;
 			assertTrue(approvalMap.get("userId").equals("oauth_admin"));
 			assertTrue(approvalMap.get("status").equals("APPROVED"));
 		});
 		signOut(204, accessToken, oauthAdminClientId);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testShowUserApprovals() throws Exception {
@@ -1474,25 +1444,25 @@ public class UserDataIntegrationTest {
 		MvcResult result = fetchUserAppvoals(user.getId(), 200);
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
-		List<Object> approvalList = (List<Object>)responseMap.get("approvals");
+		List<Object> approvalList = (List<Object>) responseMap.get("approvals");
 		assertTrue(approvalList.isEmpty());
-		
+
 		loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
 		String resourceAdminToken = (String) loginResponse.get("access_token");
-		
+
 		result = fetchUserAppvoals(user.getId(), 200);
 		responseString = result.getResponse().getContentAsString();
 		responseMap = jsonParser.parseMap(responseString);
-		approvalList = (List<Object>)responseMap.get("approvals");
+		approvalList = (List<Object>) responseMap.get("approvals");
 		approvalList.forEach(approval -> {
-			Map<String, Object> approvalMap = (Map<String, Object>)approval;
+			Map<String, Object> approvalMap = (Map<String, Object>) approval;
 			assertTrue(approvalMap.get("userId").equals("resource_admin"));
 			assertTrue(approvalMap.get("status").equals("APPROVED"));
 		});
 		signOut(204, accessToken, oauthAdminClientId);
 		signOut(204, resourceAdminToken, resourceAdminClientId);
 	}
-	
+
 	@Test
 	public void testRevokeMyApproval() throws Exception {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
@@ -1503,28 +1473,24 @@ public class UserDataIntegrationTest {
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "resource_admin");
 		params.add("password", password);
-		
-		 List<Approval> approvals = approvalStore.getApprovals("oauth_admin", oauthAdminClientId)
-			.stream()
-			.filter(approval -> approval.getScope().equals("write"))
-			.collect(Collectors.toList());
-		
+
+		List<Approval> approvals = approvalStore.getApprovals("oauth_admin", oauthAdminClientId).stream()
+				.filter(approval -> approval.getScope().equals("write")).collect(Collectors.toList());
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-			.perform(post("/user/revoke_my_approval").params(params).headers(httpHeaders)
-					.content(objectMapper.writeValueAsString(approvals.get(0)))
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(200))
-			.andReturn();
+				.perform(post("/user/revoke_my_approval").params(params).headers(httpHeaders)
+						.content(objectMapper.writeValueAsString(approvals.get(0)))
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200)).andReturn();
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
-		
+
 		assertTrue(responseMap.get("msg").equals(Utils.approvalRevokedMsg));
 		signOut(401, accessToken, oauthAdminClientId);
 	}
-	
+
 	@Test
 	public void testRevokeMyApprovalFailsWhenUserIdIsMalformed() throws Exception {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
@@ -1535,124 +1501,107 @@ public class UserDataIntegrationTest {
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "resource_admin");
 		params.add("password", password);
-		
-		 List<Approval> approvals = approvalStore.getApprovals("oauth_admin", oauthAdminClientId)
-			.stream()
-			.filter(approval -> approval.getScope().equals("write"))
-			.collect(Collectors.toList());
-		
-		 Approval approval = approvals.get(0);
-		 approval.setUserId("resource_admin");
-		 
+
+		List<Approval> approvals = approvalStore.getApprovals("oauth_admin", oauthAdminClientId).stream()
+				.filter(approval -> approval.getScope().equals("write")).collect(Collectors.toList());
+
+		Approval approval = approvals.get(0);
+		approval.setUserId("resource_admin");
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		mvc
-			.perform(post("/user/revoke_my_approval").params(params).headers(httpHeaders)
-					.content(objectMapper.writeValueAsString(approval))
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(400))
-			.andReturn();
+		mvc.perform(post("/user/revoke_my_approval").params(params).headers(httpHeaders)
+				.content(objectMapper.writeValueAsString(approval)).contentType(MediaType.APPLICATION_JSON)
+				.accept("application/json;charset=UTF-8")).andExpect(status().is(400)).andReturn();
 		signOut(204, accessToken, oauthAdminClientId);
 	}
-	
+
 	@Test
 	public void testRevokeMyApprovalByAdmin() throws Exception {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		
+
 		loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
 		String resourceAdminToken = (String) loginResponse.get("access_token");
-		
+
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "resource_admin");
 		params.add("password", password);
-		
-		 List<Approval> approvals = approvalStore.getApprovals("resource_admin", resourceAdminClientId)
-			.stream()
-			.filter(approval -> approval.getScope().equals("write"))
-			.collect(Collectors.toList());
-		
-		 Approval approval = approvals.get(0);
-		 approval.setUserId("resource_admin");
-		 
+
+		List<Approval> approvals = approvalStore.getApprovals("resource_admin", resourceAdminClientId).stream()
+				.filter(approval -> approval.getScope().equals("write")).collect(Collectors.toList());
+
+		Approval approval = approvals.get(0);
+		approval.setUserId("resource_admin");
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		MvcResult result = mvc
-			.perform(post("/user/admin/revoke_approval").params(params).headers(httpHeaders)
-					.content(objectMapper.writeValueAsString(approval))
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(200))
-			.andReturn();
-		
+		MvcResult result = mvc.perform(post("/admin/user/revoke_approval").params(params).headers(httpHeaders)
+				.content(objectMapper.writeValueAsString(approval)).contentType(MediaType.APPLICATION_JSON)
+				.accept("application/json;charset=UTF-8")).andExpect(status().is(200)).andReturn();
+
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
-		
+
 		assertTrue(responseMap.get("msg").equals(Utils.approvalRevokedMsg));
-		
+
 		signOut(204, accessToken, oauthAdminClientId);
 		signOut(401, resourceAdminToken, resourceAdminClientId);
 	}
-	
+
 	@Test
 	public void testSignOutUserByAdmin() throws Exception {
 		AppUser user = userRepository.findByName("resource_admin");
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		
+
 		loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
 		String resourceAdminToken = (String) loginResponse.get("access_token");
-		
+
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "resource_admin");
 		params.add("password", password);
-		 
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-			.perform(post("/user/admin/sign_user_out/" + user.getId()).params(params).headers(httpHeaders)
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(200))
-			.andReturn();
-		
+				.perform(post("/admin/user/sign_user_out/" + user.getId()).params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200)).andReturn();
+
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
-		
+
 		assertTrue(responseMap.get("msg").equals(Utils.userSignedOutMsg));
-		
+
 		signOut(204, accessToken, oauthAdminClientId);
 		signOut(401, resourceAdminToken, resourceAdminClientId);
 	}
-	
+
 	@Test
 	public void testSignOutUserByAdminReturns404WhenUserIdIsInvalid() throws Exception {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		
+
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "resource_admin");
 		params.add("password", password);
-		 
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		mvc
-			.perform(post("/user/admin/sign_user_out/" + 1000L).params(params).headers(httpHeaders)
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(404))
-			.andReturn();
+		mvc.perform(post("/admin/user/sign_user_out" + 1000L).params(params).headers(httpHeaders)
+				.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(404)).andReturn();
 
 		signOut(204, accessToken, oauthAdminClientId);
 	}
-	
+
 	@Test
 	public void testShowUserApprovalsReturns404WhenUserIdIsInvalid() throws Exception {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
@@ -1667,45 +1616,39 @@ public class UserDataIntegrationTest {
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "resource_admin");
 		params.add("password", password);
-		
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-			.perform(get("/user/admin/user_approvals/" + userId).params(params).headers(httpHeaders)
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(expectedStatus))
-			.andReturn();
+				.perform(get("/admin/user/user_approvals/" + userId).params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedStatus)).andReturn();
 		return result;
 	}
 
 	private MvcResult sendToggleEnableUserRequest(AppUser user, MultiValueMap<String, String> params,
 			HttpHeaders httpHeaders) throws Exception {
 		MvcResult result = mvc
-			.perform(put("/user/admin/toggle_enable_user/" + user.getId()).params(params).headers(httpHeaders)
-					.contentType(MediaType.APPLICATION_JSON)
-					.accept("application/json;charset=UTF-8"))
-			.andExpect(status().is(200))
-			.andReturn();
+				.perform(put("/admin/user/toggle_enable_user/" + user.getId()).params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(200)).andReturn();
 		return result;
 	}
-	
+
 	private MvcResult sendGetUsersRequest(int page, int expectedStatus) throws Exception {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "password");
 		params.add("client_id", oauthAdminClientId);
 		params.add("username", "oauth_admin");
 		params.add("password", password);
-		
+
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = mvc
-				.perform(get("/user/admin/users/" + (page == 0 ? "" : page)).params(params).headers(httpHeaders)
-						.contentType(MediaType.APPLICATION_JSON)
-						.accept("application/json;charset=UTF-8"))
+				.perform(get("/admin/user/users/" + (page == 0 ? "" : page)).params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
 				.andExpect(status().is(expectedStatus))
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
-				.andReturn();
+				.andExpect(content().contentType("application/json;charset=UTF-8")).andReturn();
 		return result;
 	}
 
@@ -1717,13 +1660,10 @@ public class UserDataIntegrationTest {
 		params.add("password", password);
 
 		MvcResult result = mvc
-				.perform(post("/user/sign_up").params(params)
-						.content(objectMapper.writeValueAsString(newUser))
-						.contentType(MediaType.APPLICATION_JSON)
-						.accept("application/json;charset=UTF-8"))
+				.perform(post("/user/sign_up").params(params).content(objectMapper.writeValueAsString(newUser))
+						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
 				.andExpect(status().is(expectedStatus))
-				.andExpect(content().contentType("application/json;charset=UTF-8"))
-				.andReturn();
+				.andExpect(content().contentType("application/json;charset=UTF-8")).andReturn();
 		return result;
 	}
 
