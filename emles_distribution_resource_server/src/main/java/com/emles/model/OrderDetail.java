@@ -28,11 +28,11 @@ public class OrderDetail implements Serializable {
 
 	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinColumn(name = "order_id", nullable = false)
-	private Order orderId;
+	private Order order;
 
 	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinColumn(name = "product_id", nullable = false)
-	private Product productId;
+	private Product product;
 
 	@Column(name = "quantity", nullable = false)
 	private Integer quantity;
@@ -41,11 +41,10 @@ public class OrderDetail implements Serializable {
 
 	}
 
-	public OrderDetail(Long orderDetailId, Order OrderId, Product productId, Integer quantity) {
+	public OrderDetail(Order order, Product product, Integer quantity) {
 		super();
-		this.orderDetailId = orderDetailId;
-		this.orderId = OrderId;
-		this.productId = productId;
+		this.order = order;
+		this.product = product;
 		this.quantity = quantity;
 	}
 
@@ -57,20 +56,20 @@ public class OrderDetail implements Serializable {
 		this.orderDetailId = orderDetailId;
 	}
 
-	public Order getOrderId() {
-		return orderId;
+	public Order getOrder() {
+		return order;
 	}
 
-	public void setOrderId(Order orderId) {
-		this.orderId = orderId;
+	public void setOrder(Order order) {
+		this.order = order;
 	}
 
-	public Product getProductId() {
-		return productId;
+	public Product getProduct() {
+		return product;
 	}
 
-	public void setProductId(Product productId) {
-		this.productId = productId;
+	public void setProduct(Product product) {
+		this.product = product;
 	}
 
 	public Integer getQuantity() {

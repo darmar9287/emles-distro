@@ -22,7 +22,7 @@ import com.emles.repository.ProductRepository;
 public class ProductServiceTest {
 	
 	@InjectMocks
-    private ProductService productService = new ProductServiceImpl();
+    private ProductService productService = new ProductService();
 	
 	@Mock
 	private ProductRepository productRepository;

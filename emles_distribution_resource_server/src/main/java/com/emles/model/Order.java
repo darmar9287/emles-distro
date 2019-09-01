@@ -1,6 +1,7 @@
 package com.emles.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -37,20 +38,20 @@ public class Order implements Serializable {
 
 	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinColumn(name = "customer_id", nullable = false)
-	private Customer customerId;
+	private Customer customer;
 
 	@OneToMany(mappedBy = "orderDetailId")
 	private List<OrderDetail> orderDetails;
 
 	public Order() {
-
+		this.orderDetails = new ArrayList<>();
 	}
 
-	public Order(Date orderDate, Customer customerId, List<OrderDetail> orderDetails) {
+	public Order(Date orderDate, Customer customer) {
 		super();
 		this.orderDate = orderDate;
-		this.customerId = customerId;
-		this.orderDetails = orderDetails;
+		this.customer = customer;
+		this.orderDetails = new ArrayList<>();
 	}
 
 	public Long getOrderId() {
@@ -69,12 +70,12 @@ public class Order implements Serializable {
 		this.orderDate = orderDate;
 	}
 
-	public Customer getCustomerId() {
-		return customerId;
+	public Customer getCustomer() {
+		return customer;
 	}
 
-	public void setCustomerId(Customer customerId) {
-		this.customerId = customerId;
+	public void setCustomer(Customer customer) {
+		this.customer = customer;
 	}
 
 	public List<OrderDetail> getOrderDetails() {
