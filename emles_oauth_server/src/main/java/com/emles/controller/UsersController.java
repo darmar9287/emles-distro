@@ -109,7 +109,7 @@ public class UsersController extends UserControllerBase {
 			return ResponseEntity.unprocessableEntity().body(responseMap);
 		}
 
-		userService.updateUserPassword(user, passwords);
+		userService.updateUserPassword(user, passwords.getNewPassword());
 		OAuth2AccessToken accessToken = removeAccessTokens(request);
 
 		accessToken = requestNewAccessToken(request, user, accessToken);
@@ -122,7 +122,6 @@ public class UsersController extends UserControllerBase {
 	public ResponseEntity<?> resetPassword(HttpServletRequest request, @RequestBody String email) {
 		Map<String, Object> responseMap = new HashMap<>();
 		AppUser user = userService.findByEmail(email.replace("\"", ""));
-		System.out.println(user);
 		if (user == null) {
 			responseMap.put("error", Utils.invalidEmailAddressMsg);
 			return ResponseEntity.unprocessableEntity().body(responseMap);

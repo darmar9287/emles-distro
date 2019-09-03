@@ -16,28 +16,21 @@ import com.emles.repository.AppUserRepository;
  */
 public class JdbcUserDetails implements UserDetailsService {
 
-    /**
-     * credentialRepository - repository used to fetch user credentials.
-     */
-    @Autowired
-    private AppUserRepository credentialRepository;
+	/**
+	 * credentialRepository - repository used to fetch user credentials.
+	 */
+	@Autowired
+	private AppUserRepository credentialRepository;
 
-    @Override
-    public final UserDetails loadUserByUsername(String username)
-        throws UsernameNotFoundException {
-        AppUser appUser = credentialRepository.findByName(username);
+	@Override
+	public final UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		AppUser appUser = credentialRepository.findByName(username);
 
+		if (appUser == null) {
+			throw new UsernameNotFoundException("User" + username + "can not be found");
+		}
 
-        if (appUser == null) {
-            throw new UsernameNotFoundException("User" + username
-                    + "can not be found");
-        }
-
-        return new User(
-                appUser.getName(),
-                appUser.getPassword(),
-                appUser.isEnabled(),
-                true, true, true,
-                appUser.getAuthorities());
-    }
+		return new User(appUser.getName(), appUser.getPassword(), appUser.isEnabled(), true, true, true,
+				appUser.getAuthorities());
+	}
 }

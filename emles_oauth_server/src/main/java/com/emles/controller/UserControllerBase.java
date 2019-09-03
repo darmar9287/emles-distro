@@ -30,6 +30,7 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.validation.Errors;
 
 import com.emles.model.AppUser;
+import com.emles.model.Passwords;
 import com.emles.model.UserData;
 import com.emles.model.UserPasswords;
 import com.emles.service.UserService;
@@ -155,6 +156,12 @@ public abstract class UserControllerBase {
 			AppUser user) {
 		userService.checkIfOldPasswordMatches(user, passwords.getOldPassword(), errorMessages);
 		userService.checkEqualityOfPasswords(passwords.getNewPassword(), passwords.getNewPasswordConfirmation(),
+				errorMessages);
+		userService.checkOtherValidationErrors(errors, errorMessages);
+	}
+	
+	protected void validateUserPasswords(Passwords passwords, Errors errors, List<String> errorMessages) {
+		userService.checkEqualityOfPasswords(passwords.getPassword(), passwords.getPasswordConfirmation(),
 				errorMessages);
 		userService.checkOtherValidationErrors(errors, errorMessages);
 	}

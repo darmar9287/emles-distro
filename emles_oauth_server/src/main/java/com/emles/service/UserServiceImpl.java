@@ -21,7 +21,6 @@ import com.emles.model.Authority;
 import com.emles.model.PasswordResetToken;
 import com.emles.model.Passwords;
 import com.emles.model.UserData;
-import com.emles.model.UserPasswords;
 import com.emles.model.projection.UserSimplified;
 import com.emles.repository.AccountActivationTokenRepository;
 import com.emles.repository.AppUserRepository;
@@ -148,8 +147,8 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Transactional
-	public void updateUserPassword(AppUser signedIn, UserPasswords passwords) {
-		String encryptedPassword = passwordEncoder.encode(passwords.getNewPassword());
+	public void updateUserPassword(AppUser signedIn, String newPassword) {
+		String encryptedPassword = passwordEncoder.encode(newPassword);
 		signedIn.setPassword(encryptedPassword);
 		userRepository.save(signedIn);
 	}

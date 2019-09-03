@@ -27,7 +27,7 @@ public class SplitCollectionEditor extends CustomCollectionEditor {
 	 * Constructor of this class.
 	 * 
 	 * @param colType - collection type.
-	 * @param regex   - split regex field.
+	 * @param regex - split regex field.
 	 */
 	@SuppressWarnings("rawtypes")
 	public SplitCollectionEditor(Class<? extends Collection> colType, String regex) {
@@ -40,7 +40,8 @@ public class SplitCollectionEditor extends CustomCollectionEditor {
 	public final void setAsText(String text) throws IllegalArgumentException {
 		if (text == null || text.isEmpty()) {
 			super.setValue(super.createCollection(this.collectionType, 0));
-		} else {
+		}
+		else {
 			super.setValue(text.split(splitRegex));
 		}
 	}

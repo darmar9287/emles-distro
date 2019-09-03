@@ -1,4 +1,5 @@
 package com.emles.configuration;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -43,13 +44,13 @@ import javax.sql.DataSource;
 @Configuration
 @EnableAuthorizationServer
 public class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
-    
+
 	@Value("${spring.redis.host}")
 	private String redisHost;
-	
+
 	@Value("${spring.redis.port}")
 	private int redisPort;
-	
+
 	@Bean
 	public RedisConnectionFactory redisConnectionFactory() {
 		RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
@@ -57,47 +58,47 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 		config.setPort(redisPort);
 		return new JedisConnectionFactory(config);
 	}
-	
+
 	/**
 	 * authenticationManager - Authentication manager needed for password grant type.
 	 */
 	@Autowired
 	private AuthenticationManager authenticationManager;
-	
+
 	@Autowired
 	private UserDetailsService userDetailsService;
-	
+
 	/**
-     * Oauth data source bean.
-     * @return oauth data source.
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "spring.datasource")
-    public DataSource oauthDataSource() {
-        return DataSourceBuilder.create().build();
-    }
+	 * Oauth data source bean.
+	 * @return oauth data source.
+	 */
+	@Bean
+	@ConfigurationProperties(prefix = "spring.datasource")
+	public DataSource oauthDataSource() {
+		return DataSourceBuilder.create().build();
+	}
 
-    /**
-     * JdbcClientDetailsService bean.
-     * @return JdbcClientDetailsService.
-     */
-    @Bean
-    public JdbcClientDetailsService jdbcClientDetailsService() {
-        return new JdbcClientDetailsService(oauthDataSource());
-    }
-    
-    /**
-     * ApprovalStore bean.
-     * @return JdbcApprovalStore.
-     */
-    @Bean
-    public ApprovalStore approvalStore() {
-        TokenApprovalStore store = new TokenApprovalStore();
-        store.setTokenStore(tokenStore());
-        return store;
-    }
+	/**
+	 * JdbcClientDetailsService bean.
+	 * @return JdbcClientDetailsService.
+	 */
+	@Bean
+	public JdbcClientDetailsService jdbcClientDetailsService() {
+		return new JdbcClientDetailsService(oauthDataSource());
+	}
 
-    @Bean
+	/**
+	 * ApprovalStore bean.
+	 * @return JdbcApprovalStore.
+	 */
+	@Bean
+	public ApprovalStore approvalStore() {
+		TokenApprovalStore store = new TokenApprovalStore();
+		store.setTokenStore(tokenStore());
+		return store;
+	}
+
+	@Bean
 	public TokenStoreUserApprovalHandler userApprovalHandler() {
 		TokenStoreUserApprovalHandler handler = new TokenStoreUserApprovalHandler();
 		handler.setTokenStore(tokenStore());
@@ -105,63 +106,56 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 		handler.setClientDetailsService(jdbcClientDetailsService());
 		return handler;
 	}
-    
-    @Bean
-    public ProviderManager preAuthenticationProvider() {
-    	PreAuthenticatedAuthenticationProvider provider = new PreAuthenticatedAuthenticationProvider();
-    	provider.setPreAuthenticatedUserDetailsService(new UserDetailsByNameServiceWrapper<>(userDetailsService));
-    	return new ProviderManager(Arrays.asList(provider));
-    }
-    
-    @Bean
-    public AuthorizationServerTokenServices oauthServerTokenServices() {
-    	DefaultTokenServices tokenServices = new DefaultTokenServices();
-    	tokenServices.setClientDetailsService(jdbcClientDetailsService());
-    	tokenServices.setReuseRefreshToken(false);
-    	tokenServices.setSupportRefreshToken(true);
-    	tokenServices.setTokenStore(tokenStore());
-    	tokenServices.setAuthenticationManager(preAuthenticationProvider());
-    	return tokenServices;
-    }
-    
-    /**
-     * Token store bean.
-     * @return JdbcTokenStore.
-     */
-    @Bean
-    public TokenStore tokenStore() {
+
+	@Bean
+	public ProviderManager preAuthenticationProvider() {
+		PreAuthenticatedAuthenticationProvider provider = new PreAuthenticatedAuthenticationProvider();
+		provider.setPreAuthenticatedUserDetailsService(new UserDetailsByNameServiceWrapper<>(userDetailsService));
+		return new ProviderManager(Arrays.asList(provider));
+	}
+
+	@Bean
+	public AuthorizationServerTokenServices oauthServerTokenServices() {
+		DefaultTokenServices tokenServices = new DefaultTokenServices();
+		tokenServices.setClientDetailsService(jdbcClientDetailsService());
+		tokenServices.setReuseRefreshToken(false);
+		tokenServices.setSupportRefreshToken(true);
+		tokenServices.setTokenStore(tokenStore());
+		tokenServices.setAuthenticationManager(preAuthenticationProvider());
+		return tokenServices;
+	}
+
+	/**
+	 * Token store bean.
+	 * @return JdbcTokenStore.
+	 */
+	@Bean
+	public TokenStore tokenStore() {
 		return new RedisTokenStore(redisConnectionFactory());
-    }
+	}
 
-    /**
-     * Authorization code services bean.
-     * @return jdbc authorization service codes services.
-     */
-    @Bean
-    public AuthorizationCodeServices authorizationCodeServices() {
-        return new JdbcAuthorizationCodeServices(oauthDataSource());
-    }
+	/**
+	 * Authorization code services bean.
+	 * @return jdbc authorization service codes services.
+	 */
+	@Bean
+	public AuthorizationCodeServices authorizationCodeServices() {
+		return new JdbcAuthorizationCodeServices(oauthDataSource());
+	}
 
-    @Override
-    public void configure(ClientDetailsServiceConfigurer clients)
-        throws Exception {
-        clients.withClientDetails(jdbcClientDetailsService());
-    }
+	@Override
+	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+		clients.withClientDetails(jdbcClientDetailsService());
+	}
 
-    @Override
-    public void configure(
-        AuthorizationServerSecurityConfigurer oauthServer)
-        throws Exception {
-    }
+	@Override
+	public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
+	}
 
-    @Override
-    public final void configure(
-        AuthorizationServerEndpointsConfigurer endpoints)
-            throws Exception {
-        endpoints
-        	.approvalStore(approvalStore()).userApprovalHandler(userApprovalHandler())
-        	.authenticationManager(authenticationManager)
-            .authorizationCodeServices(authorizationCodeServices())
-            .tokenServices(oauthServerTokenServices());
-    }
+	@Override
+	public final void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		endpoints.approvalStore(approvalStore()).userApprovalHandler(userApprovalHandler())
+				.authenticationManager(authenticationManager).authorizationCodeServices(authorizationCodeServices())
+				.tokenServices(oauthServerTokenServices());
+	}
 }
