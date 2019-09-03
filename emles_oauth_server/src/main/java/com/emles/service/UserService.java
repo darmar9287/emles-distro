@@ -14,7 +14,6 @@ import com.emles.model.AppUser;
 import com.emles.model.Authority;
 import com.emles.model.Passwords;
 import com.emles.model.UserData;
-import com.emles.model.UserPasswords;
 import com.emles.model.projection.UserSimplified;
 
 public interface UserService {
@@ -41,7 +40,7 @@ public interface UserService {
 
 	void checkIfOldPasswordMatches(AppUser signedIn, String oldPassword, List<String> errorMessages);
 
-	void updateUserPassword(AppUser signedIn, UserPasswords passwords);
+	void updateUserPassword(AppUser signedIn, String newPassword);
 
 	void validateUniqueValuesForUser(AppUser user, List<String> errorMessages);
 

@@ -34,7 +34,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 	public AuthenticationManager authenticationManagerBean() throws Exception {
 		return super.authenticationManagerBean();
 	}
-	
+
 	/**
 	 * Bean for password encoder.
 	 * 
@@ -53,21 +53,13 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	@Override
 	public void configure(WebSecurity web) throws Exception {
-		web
-		.ignoring()
-		.antMatchers("/webjars/**", "/resources/**");
+		web.ignoring().antMatchers("/webjars/**", "/resources/**");
 	}
 
 	@Override
 	protected final void configure(HttpSecurity http) throws Exception {
-		http
-		.authorizeRequests()
-		.antMatchers("/user/forgot_password", "/user/change_forgotten_password")
-		.permitAll()
-		.anyRequest()
-		.authenticated()
-		.and()
-		.userDetailsService(userDetailsServiceBean());
+		http.authorizeRequests().antMatchers("/user/forgot_password", "/user/change_forgotten_password").permitAll()
+				.anyRequest().authenticated().and().userDetailsService(userDetailsServiceBean());
 	}
 
 	@Override

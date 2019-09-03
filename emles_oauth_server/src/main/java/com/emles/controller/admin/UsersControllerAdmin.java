@@ -25,8 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.emles.controller.UserControllerBase;
 import com.emles.model.AppUser;
 import com.emles.model.Authority;
+import com.emles.model.Passwords;
 import com.emles.model.UserData;
-import com.emles.model.UserPasswords;
 import com.emles.model.projection.UserSimplified;
 import com.emles.utils.Utils;
 
@@ -166,20 +166,20 @@ public class UsersControllerAdmin extends UserControllerBase {
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/change_password/{userId}", method = RequestMethod.POST)
 	public ResponseEntity<?> changePasswordByAdmin(@PathVariable("userId") Long userId,
-			@Valid @RequestBody UserPasswords passwords, Errors errors) {
+			@Valid @RequestBody Passwords passwords, Errors errors) {
 		Map<String, Object> responseMap = new HashMap<>();
 		List<String> errorMessages = new ArrayList<>();
 
 		Optional<AppUser> userOpt = userService.findById(userId);
 		if (userOpt.isPresent()) {
 			AppUser user = userOpt.get();
-			validateUserPasswords(passwords, errors, errorMessages, user);
+			validateUserPasswords(passwords, errors, errorMessages);
 
 			if (errorMessages.size() > 0) {
 				responseMap.put("validationErrors", errorMessages);
 				return ResponseEntity.unprocessableEntity().body(responseMap);
 			}
-			userService.updateUserPassword(user, passwords);
+			userService.updateUserPassword(user, passwords.getPassword());
 
 			signOutUserRemotely(user);
 			responseMap.put("msg", "User (" + user.getName() + ") password has been changed.");
