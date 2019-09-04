@@ -74,8 +74,18 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	@Autowired
 	private ApprovalStore approvalStore;
 
+	private AppUser newUser;
+	
+	private String newUserPassword = "h4$h3dPa$$";
+	
 	@Before
 	public void setUp() {
+		newUser = new AppUser();
+		newUser.setEmail("newuser@emles.com");
+		newUser.setName("newuser");
+		newUser.setPassword(newUserPassword);
+		newUser.setPasswordConfirmation(newUserPassword);
+		newUser.setPhone("600600666");
 		jsonParser = JsonParserFactory.getJsonParser();
 	}
 
@@ -532,21 +542,20 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	@Test
 	public void testUpdateUserDataReturns422WhenEmailIsInvalidAndPhoneExists() throws Exception {
 		String userName = "oauth_admin";
+		String newEmail = "invalid";
+		String newPhone = "700-799-799";
 		Map<String, Object> loginResponse = loginAs(userName, oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 
-		UserData newUserData = new UserData();
-		newUserData.setEmail("invalid");
-		newUserData.setPhone("700-799-799");
+		UserData newUserData = createUserData(newEmail, newPhone);
 		MvcResult result = sendUpdateUserDataRequestForSignedInUser(newUserData, oauthAdminClientId, userName,
 				accessToken, 422);
 
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
 		List<String> errors = (List<String>) responseMap.get("validationErrors");
 
-		assertTrue(errors.size() == 2);
+		assertEquals(errors.size(), 2);
 		assertTrue(errors.contains(Utils.phoneNumberExistsMsg));
 		assertTrue(errors.contains(Utils.invalidEmailAddressMsg));
 
@@ -556,31 +565,21 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	@Test
 	public void testChangeUserDataByAdminReturns422WhenUserDoesNotExist() throws Exception {
 		long userId = 2000L;
+		String newEmail = "test@test.com";
+		String newPhone = "123456789";
 
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 
-		UserData userData = new UserData();
-		userData.setEmail("test@test.com");
-		userData.setPhone("123456789");
+		UserData userData = createUserData(newEmail, newPhone);
 
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "oauth_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		MvcResult result = mvc
-				.perform(put("/admin/user/update_account/" + userId).params(params).headers(httpHeaders)
-						.content(objectMapper.writeValueAsString(userData)).contentType(MediaType.APPLICATION_JSON)
-						.accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(422)).andExpect(content().contentType("application/json;charset=UTF-8"))
-				.andReturn();
+		MvcResult result = performChangeUserDataByAdmin(userId, userData, params, httpHeaders, 422);
 
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 		assertTrue(responseMap.get("error").equals(Utils.userDoesNotExistMsg));
 
 		signOut(204, accessToken, oauthAdminClientId);
@@ -590,31 +589,21 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	public void testChangeUserDataByAdminSuccess() throws Exception {
 		AppUser resourceAdminUser = userRepository.findByName("resource_admin");
 		long userId = resourceAdminUser.getId();
+		String newEmail = "test@test.com";
+		String newPhone = "123456789";
 
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 
-		UserData userData = new UserData();
-		userData.setEmail("test@test.com");
-		userData.setPhone("123456789");
+		UserData userData = createUserData(newEmail, newPhone);
 
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "oauth_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		MvcResult result = mvc
-				.perform(put("/admin/user/update_account/" + userId).params(params).headers(httpHeaders)
-						.content(objectMapper.writeValueAsString(userData)).contentType(MediaType.APPLICATION_JSON)
-						.accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200)).andExpect(content().contentType("application/json;charset=UTF-8"))
-				.andReturn();
+		MvcResult result = performChangeUserDataByAdmin(userId, userData, params, httpHeaders, 200);
 
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 		assertTrue(responseMap.get("msg").equals(Utils.changedUserDataMsg));
 
 		signOut(204, accessToken, oauthAdminClientId);
@@ -623,24 +612,9 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	@Test
 	public void testSignUpSuccess() throws Exception {
 
-		String newUserPassword = "h4$h3dPa$$";
-		AppUser newUser = new AppUser();
-		newUser.setEmail("newuser@emles.com");
-		newUser.setName("newuser");
-		newUser.setPassword(newUserPassword);
-		newUser.setPasswordConfirmation(newUserPassword);
-		newUser.setPhone("600600666");
-
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "oauth_admin");
-		params.add("password", password);
-
 		MvcResult result = sendSignUpRequest(newUser, 200);
 
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 		assertTrue(responseMap.get("msg").equals(Utils.signUpSuccessMsg));
 
 		AppUser found = userRepository.findByName(newUser.getName());
@@ -649,7 +623,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		assertTrue(found.getEmail().equals(newUser.getEmail()));
 		assertTrue(found.getName().equals(newUser.getName()));
 		assertTrue(found.getPhone().equals(newUser.getPhone()));
-		assertTrue(found.getAuthorities().size() == 1);
+		assertEquals(found.getAuthorities().size(), 1);
 		assertTrue(found.getAuthorities().get(0).getAuthority().equals("ROLE_USER"));
 		assertFalse(found.isEnabled());
 
@@ -660,22 +634,17 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	@Test
 	public void testSignUpReturns422WhenUniquePramsExists() throws Exception {
 
-		String newUserPassword = "h4$h3dPa$$";
-		AppUser newUser = new AppUser();
 		newUser.setEmail("oauth_admin@emles.com");
 		newUser.setName("oauth_admin");
-		newUser.setPassword(newUserPassword);
-		newUser.setPasswordConfirmation(newUserPassword);
 		newUser.setPhone("700700700");
 
 		MvcResult result = sendSignUpRequest(newUser, 422);
 
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
 		List<String> errors = (List<String>) responseMap.get("validationErrors");
 
-		assertTrue(errors.size() == 3);
+		assertEquals(errors.size(), 3);
 		assertTrue(errors.contains(Utils.userNameExistsMsg));
 		assertTrue(errors.contains(Utils.phoneNumberExistsMsg));
 		assertTrue(errors.contains(Utils.emailExistsMsg));
@@ -683,135 +652,76 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 	@Test
 	public void testSignUpReturns422WhenPasswordsDoNotMatch() throws Exception {
-
-		String newUserPassword = "h4$h3dPa$$";
-		AppUser newUser = new AppUser();
-		newUser.setEmail("test_user@emles.com");
-		newUser.setName("test_user");
 		newUser.setPassword(newUserPassword);
 		newUser.setPasswordConfirmation(newUserPassword + "s");
-		newUser.setPhone("700720700");
-
 		MvcResult result = sendSignUpRequest(newUser, 422);
-
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
 		List<String> errors = (List<String>) responseMap.get("validationErrors");
 
-		assertTrue(errors.size() == 1);
+		assertEquals(errors.size(), 1);
 		assertTrue(errors.contains(Utils.passwordsNotEqualMsg));
 	}
 
 	@Test
 	public void testSignUpReturns422WhenPasswordIsInvalid() throws Exception {
-
-		String newUserPassword = "h4$h3dPa$$";
-		AppUser newUser = new AppUser();
-		newUser.setEmail("test_user@emles.com");
-		newUser.setName("test_user");
 		newUser.setPassword("invalid");
-		newUser.setPasswordConfirmation(newUserPassword);
-		newUser.setPhone("700720700");
-
 		MvcResult result = sendSignUpRequest(newUser, 422);
-
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
 		List<String> errors = (List<String>) responseMap.get("validationErrors");
 
-		assertTrue(errors.size() == 2);
+		assertEquals(errors.size(), 2);
 		assertTrue(errors.contains(Utils.passwordsNotEqualMsg));
 		assertTrue(errors.contains(Utils.invalidPasswordMsg));
 	}
 
 	@Test
 	public void testSignUpReturns422WhenPasswordConfirmationIsInvalid() throws Exception {
-
-		String newUserPassword = "h4$h3dPa$$";
-		AppUser newUser = new AppUser();
-		newUser.setEmail("test_user@emles.com");
-		newUser.setName("test_user");
-		newUser.setPassword(newUserPassword);
 		newUser.setPasswordConfirmation("invalid");
-		newUser.setPhone("700720700");
-
 		MvcResult result = sendSignUpRequest(newUser, 422);
-
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
 		List<String> errors = (List<String>) responseMap.get("validationErrors");
 
-		assertTrue(errors.size() == 2);
+		assertEquals(errors.size(), 2);
 		assertTrue(errors.contains(Utils.passwordsNotEqualMsg));
 		assertTrue(errors.contains(Utils.invalidPasswordConfirmationMsg));
 	}
 
 	@Test
 	public void testSignUpReturns422WhenUsernameIsTooShort() throws Exception {
-
-		String newUserPassword = "h4$h3dPa$$";
-		AppUser newUser = new AppUser();
-		newUser.setEmail("test_user@emles.com");
 		newUser.setName("tes");
-		newUser.setPassword(newUserPassword);
-		newUser.setPasswordConfirmation(newUserPassword);
-		newUser.setPhone("700720700");
-
 		MvcResult result = sendSignUpRequest(newUser, 422);
-
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
 		List<String> errors = (List<String>) responseMap.get("validationErrors");
 
-		assertTrue(errors.size() == 1);
+		assertEquals(errors.size(), 1);
 		assertTrue(errors.contains(Utils.userNameRequirementMsg));
 	}
 
 	@Test
 	public void testSignUpReturns422WhenUsernameIsTooLong() throws Exception {
-
-		String newUserPassword = "h4$h3dPa$$";
-		AppUser newUser = new AppUser();
-		newUser.setEmail("test_user@emles.com");
 		newUser.setName(Utils.invalidPasswordConfirmationMsg.replaceAll("\\s", ""));
-		newUser.setPassword(newUserPassword);
-		newUser.setPasswordConfirmation(newUserPassword);
-		newUser.setPhone("700720700");
-
 		MvcResult result = sendSignUpRequest(newUser, 422);
-
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
 		List<String> errors = (List<String>) responseMap.get("validationErrors");
 
-		assertTrue(errors.size() == 1);
+		assertEquals(errors.size(), 1);
 		assertTrue(errors.contains(Utils.userNameRequirementMsg));
 	}
 
 	@Test
 	public void testSignUpReturns422WhenUsernameContainsForbiddenChars() throws Exception {
-
-		String newUserPassword = "h4$h3dPa$$";
-		AppUser newUser = new AppUser();
-		newUser.setEmail("test_user@emles.com");
 		newUser.setName("u$ern$m.,_ ");
-		newUser.setPassword(newUserPassword);
-		newUser.setPasswordConfirmation(newUserPassword);
-		newUser.setPhone("700720700");
-
 		MvcResult result = sendSignUpRequest(newUser, 422);
-
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
 		List<String> errors = (List<String>) responseMap.get("validationErrors");
 
-		assertTrue(errors.size() == 1);
+		assertEquals(errors.size(), 1);
 		assertTrue(errors.contains(Utils.userNameRequirementMsg));
 	}
 
@@ -1666,6 +1576,20 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 						.contentType(MediaType.APPLICATION_JSON)
 						.accept("application/json;charset=UTF-8"))
 				.andExpect(status().is(expectedStatus))
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
+	}
+	
+	private MvcResult performChangeUserDataByAdmin(long userId, UserData userData, MultiValueMap<String, String> params,
+			HttpHeaders httpHeaders, int expectedState) throws Exception {
+		return mvc
+				.perform(put("/admin/user/update_account/" + userId)
+						.params(params)
+						.headers(httpHeaders)
+						.content(objectMapper.writeValueAsString(userData))
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedState))
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
 	}
