@@ -77,9 +77,9 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	private ApprovalStore approvalStore;
 
 	private AppUser newUser;
-	
+
 	private String newUserPassword = "h4$h3dPa$$";
-	
+
 	@Before
 	public void setUp() {
 		newUser = new AppUser();
@@ -104,16 +104,17 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		Map<String, Object> loginResponse = loginAs(user.getName(), productAdminClientId, rawPass);
 		accessToken = (String) loginResponse.get("access_token");
 		refreshToken = (String) loginResponse.get("refresh_token");
-		
-		UserPasswords newCredentials = createUserPasswords(rawPass, newPass , newPassConfirmation);
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", productAdminClientId, user.getName(), password);
+		UserPasswords newCredentials = createUserPasswords(rawPass, newPass, newPassConfirmation);
+
+		MultiValueMap<String, String> params = prepareOauthParams("password", productAdminClientId, user.getName(),
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		MvcResult result = performChangePasswordRequest(params, httpHeaders, newCredentials, 200);
 		Map<String, Object> responseMap = getJsonMap(result);
-		
+
 		@SuppressWarnings("unchecked")
 		Map<String, Object> accessTokenMap = (HashMap<String, Object>) responseMap.get("token");
 		String newAccessToken = (String) accessTokenMap.get("access_token");
@@ -145,10 +146,11 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		UserPasswords newCredentials = createUserPasswords(oldPass, newPass, newPass);
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", resourceAdminClientId, user.getName(), password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", resourceAdminClientId, user.getName(),
+				password);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		
+
 		MvcResult result = performChangePasswordRequest(params, httpHeaders, newCredentials, 422);
 		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
@@ -174,10 +176,11 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		UserPasswords newCredentials = createUserPasswords(rawPass, newPassword, newPasswordConfirmation);
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, user.getName(), password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, user.getName(),
+				password);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		
+
 		MvcResult result = performChangePasswordRequest(params, httpHeaders, newCredentials, 422);
 		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
@@ -203,10 +206,11 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		UserPasswords newCredentials = createUserPasswords(rawPass, newPassword, newPasswordConfirmation);
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, user.getName(), password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, user.getName(),
+				password);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		
+
 		MvcResult result = performChangePasswordRequest(params, httpHeaders, newCredentials, 422);
 		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
@@ -233,10 +237,11 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		UserPasswords newCredentials = createUserPasswords(rawPass, newPassword, newPasswordConfirmation);
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, user.getName(), password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, user.getName(),
+				password);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		
+
 		MvcResult result = performChangePasswordRequest(params, httpHeaders, newCredentials, 422);
 		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
@@ -264,10 +269,11 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		UserPasswords newCredentials = createUserPasswords(oldPassword, newPassword, newPasswordConfirmation);
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, user.getName(), password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, user.getName(),
+				password);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		
+
 		MvcResult result = performChangePasswordRequest(params, httpHeaders, newCredentials, 422);
 		Map<String, Object> responseMap = getJsonMap(result);
 		@SuppressWarnings("unchecked")
@@ -298,10 +304,11 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		UserPasswords newCredentials = createUserPasswords(oldPassword, newPassword, newPasswordConfirmation);
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, user.getName(), password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, user.getName(),
+				password);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer ");
-		
+
 		performChangePasswordRequest(params, httpHeaders, newCredentials, 401);
 		signOut(204, accessToken, oauthAdminClientId);
 	}
@@ -329,7 +336,8 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		Passwords newCredentials = createPasswords(newPass, newPass);
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
@@ -350,13 +358,14 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	public void testChangePasswordByAdminReturns422WhenUserDoesNotExist() throws Exception {
 		long userId = 2000L;
 		String newPass = "abcd@@@##AA1112";
-		
+
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 
 		Passwords newCredentials = createPasswords(newPass, newPass);
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
@@ -575,7 +584,8 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		UserData userData = createUserData(newEmail, newPhone);
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
@@ -599,7 +609,8 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		UserData userData = createUserData(newEmail, newPhone);
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
@@ -738,7 +749,8 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		List<Authority> authorities = Arrays.asList(productAdminAuthority, userAuthority);
 		newUser.setAuthorities(authorities);
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
@@ -750,7 +762,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		AppUser found = userRepository.findByName(newUser.getName());
 		List<String> authorityNames = found.getAuthorities().stream().map(Authority::getAuthority)
 				.collect(Collectors.toList());
-		
+
 		assertNotNull(found);
 		assertTrue(found.getEmail().equals(newUser.getEmail()));
 		assertTrue(found.getName().equals(newUser.getName()));
@@ -801,7 +813,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		MvcResult result = sendSignUpRequest(newUser, 200);
 
 		AppUser found = userRepository.findByName(newUser.getName());
-		
+
 		result = performActivateAccount(found.getId(), "invalid", 422);
 
 		Map<String, Object> responseMap = getJsonMap(result);
@@ -851,7 +863,8 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		Map<String, Object> loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", resourceAdminClientId, "resource_admin", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", resourceAdminClientId, "resource_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
@@ -876,7 +889,8 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
@@ -901,7 +915,8 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
@@ -917,15 +932,16 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		Authority oauthAdminAuthority = authorityRepository.findByAuthority("ROLE_OAUTH_ADMIN");
 		List<Long> authorityIds = Arrays.asList(productAdminAuthority, oauthAdminAuthority).stream()
 				.map(authority -> authority.getId()).collect(Collectors.toList());
-		
+
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
+
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		List<String> resourceAdminAuthorities = resourceAdmin.getAuthorities().stream().map(Authority::getAuthority)
 				.collect(Collectors.toList());
-		
+
 		assertTrue(resourceAdminAuthorities.contains("ROLE_USER"));
 		assertFalse(resourceAdminAuthorities.contains("ROLE_PRODUCT_ADMIN"));
 		assertFalse(resourceAdminAuthorities.contains("ROLE_OAUTH_ADMIN"));
@@ -942,7 +958,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		assertTrue(resourceAdminAuthorities.contains("ROLE_PRODUCT_ADMIN"));
 		assertTrue(resourceAdminAuthorities.contains("ROLE_OAUTH_ADMIN"));
 		assertTrue(responseMap.get("msg").equals(Utils.updateUserDataSuccessMsg));
-		
+
 		signOut(204, accessToken, oauthAdminClientId);
 	}
 
@@ -952,12 +968,13 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		List<Long> authorityIds = Arrays.asList(1L, 2L);
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		performChangeUserAuthority(invalidUserId, authorityIds, params, httpHeaders, 404);
-		
+
 		signOut(204, accessToken, oauthAdminClientId);
 	}
 
@@ -966,25 +983,19 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	public void testShowAuthorities() throws Exception {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "oauth_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		MvcResult result = mvc
-				.perform(get("/authority/list").params(params).headers(httpHeaders)
-						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200)).andReturn();
+		MvcResult result = fetchAuthorities(params, httpHeaders, 200);
 		String responseString = result.getResponse().getContentAsString();
 		List<Object> responseList = jsonParser.parseList(responseString);
-		assertTrue(responseList.size() == 3);
+		assertEquals(responseList.size(), 3);
 		responseList.forEach(authorityObj -> {
 			Map<String, Object> authorityMap = (Map<String, Object>) authorityObj;
 			Set<String> authorityKeys = authorityMap.keySet();
-			assertTrue(authorityKeys.size() == 2);
+			assertEquals(authorityKeys.size(), 2);
 			assertTrue(authorityKeys.contains("id"));
 			assertTrue(authorityKeys.contains("authority"));
 		});
@@ -994,16 +1005,12 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	public void testShowAuthoritiesShouldReturn403WhenUserIsNotOauthAdmin() throws Exception {
 		Map<String, Object> loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", resourceAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", resourceAdminClientId, "resource_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		mvc.perform(get("/authority/list").params(params).headers(httpHeaders).contentType(MediaType.APPLICATION_JSON)
-				.accept("application/json;charset=UTF-8")).andExpect(status().is(403)).andReturn();
+		fetchAuthorities(params, httpHeaders, 403);
 	}
 
 	@Test
@@ -1011,24 +1018,17 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		AppUser user = userRepository.findByName("resource_admin");
 		Map<String, Object> loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", resourceAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", resourceAdminClientId, "resource_admin",
+				password);
 
-		assertTrue(user != null);
+		assertNotNull(user);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		MvcResult result = mvc
-				.perform(delete("/user/my_account/delete").params(params).headers(httpHeaders)
-						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200)).andReturn();
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		MvcResult result = performDeleteMyAccount(params, httpHeaders, 200);
+		Map<String, Object> responseMap = getJsonMap(result);
 
 		user = userRepository.findByName("resource_admin");
-		assertTrue(user == null);
+		assertNull(user);
 		assertTrue(responseMap.get("msg").equals(Utils.accountRemovedMsg));
 		signOut(401, accessToken, resourceAdminClientId);
 	}
@@ -1038,24 +1038,18 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		AppUser user = userRepository.findByName("resource_admin");
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
-		assertTrue(user != null);
+		assertNotNull(user);
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		MvcResult result = mvc
-				.perform(delete("/admin/user/delete_account/" + user.getId()).params(params).headers(httpHeaders)
-						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200)).andReturn();
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		MvcResult result = performDeleteAccountByAdmin(user.getId(), params, httpHeaders, 200);
+
+		Map<String, Object> responseMap = getJsonMap(result);
 
 		user = userRepository.findByName("resource_admin");
-		assertTrue(user == null);
+		assertNull(user);
 		assertTrue(responseMap.get("msg").equals(Utils.accountRemovedMsg));
 		signOut(204, accessToken, oauthAdminClientId);
 	}
@@ -1065,17 +1059,12 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		long invalidId = 1000L;
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		mvc.perform(delete("/admin/user/delete_account/" + invalidId).params(params).headers(httpHeaders)
-				.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(404)).andReturn();
+		performDeleteAccountByAdmin(invalidId, params, httpHeaders, 404);
 
 		signOut(204, accessToken, oauthAdminClientId);
 	}
@@ -1085,17 +1074,12 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		long invalidId = 1000L;
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		mvc.perform(put("/admin/user/toggle_enable_user/" + invalidId).params(params).headers(httpHeaders)
-				.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(404)).andReturn();
+		performToggleEnableUser(invalidId, params, httpHeaders, 404);
 
 		signOut(204, accessToken, oauthAdminClientId);
 	}
@@ -1109,19 +1093,15 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
 		String resourceAdminToken = (String) loginResponse.get("access_token");
 
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
 		assertTrue(user.isEnabled());
-		MvcResult result = sendToggleEnableUserRequest(user, params, httpHeaders);
 
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		MvcResult result = performToggleEnableUser(user.getId(), params, httpHeaders, 200);
+		Map<String, Object> responseMap = getJsonMap(result);
 
 		assertTrue(responseMap.get("msg").equals(Utils.userDisabledMsg));
 		user = userRepository.findByName("resource_admin");
@@ -1129,9 +1109,8 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		signOut(401, resourceAdminToken, resourceAdminClientId);
 		loginAs("resource_admin", resourceAdminClientId, password, 400);
 
-		result = sendToggleEnableUserRequest(user, params, httpHeaders);
-		responseString = result.getResponse().getContentAsString();
-		responseMap = jsonParser.parseMap(responseString);
+		result = performToggleEnableUser(user.getId(), params, httpHeaders, 200);
+		responseMap = getJsonMap(result);
 		assertTrue(responseMap.get("msg").equals(Utils.userEnabledMsg));
 
 		user = userRepository.findByName("resource_admin");
@@ -1148,20 +1127,14 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	public void testShowMyApprovals() throws Exception {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		MvcResult result = mvc
-				.perform(get("/user/my_approvals").params(params).headers(httpHeaders)
-						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200)).andReturn();
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		MvcResult result = fetchMyApprovals(params, httpHeaders, 200);
+
+		Map<String, Object> responseMap = getJsonMap(result);
 		List<Object> approvalList = (List<Object>) responseMap.get("approvals");
 		approvalList.forEach(approval -> {
 			Map<String, Object> approvalMap = (Map<String, Object>) approval;
@@ -1177,18 +1150,16 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		AppUser user = userRepository.findByName("resource_admin");
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		MvcResult result = fetchUserAppvoals(user.getId(), 200);
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		MvcResult result = fetchUserApprovals(user.getId(), 200);
+		Map<String, Object> responseMap = getJsonMap(result);
 		List<Object> approvalList = (List<Object>) responseMap.get("approvals");
 		assertTrue(approvalList.isEmpty());
 
 		loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
 		String resourceAdminToken = (String) loginResponse.get("access_token");
 
-		result = fetchUserAppvoals(user.getId(), 200);
-		responseString = result.getResponse().getContentAsString();
-		responseMap = jsonParser.parseMap(responseString);
+		result = fetchUserApprovals(user.getId(), 200);
+		responseMap = getJsonMap(result);
 		approvalList = (List<Object>) responseMap.get("approvals");
 		approvalList.forEach(approval -> {
 			Map<String, Object> approvalMap = (Map<String, Object>) approval;
@@ -1204,24 +1175,17 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		List<Approval> approvals = approvalStore.getApprovals("oauth_admin", oauthAdminClientId).stream()
 				.filter(approval -> approval.getScope().equals("write")).collect(Collectors.toList());
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		MvcResult result = mvc
-				.perform(post("/user/revoke_my_approval").params(params).headers(httpHeaders)
-						.content(objectMapper.writeValueAsString(approvals.get(0)))
-						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200)).andReturn();
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		MvcResult result = performRevokeMyApproval(params, approvals, httpHeaders, 200);
+
+		Map<String, Object> responseMap = getJsonMap(result);
 
 		assertTrue(responseMap.get("msg").equals(Utils.approvalRevokedMsg));
 		signOut(401, accessToken, oauthAdminClientId);
@@ -1232,11 +1196,8 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		List<Approval> approvals = approvalStore.getApprovals("oauth_admin", oauthAdminClientId).stream()
 				.filter(approval -> approval.getScope().equals("write")).collect(Collectors.toList());
@@ -1246,40 +1207,31 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		mvc.perform(post("/user/revoke_my_approval").params(params).headers(httpHeaders)
-				.content(objectMapper.writeValueAsString(approval)).contentType(MediaType.APPLICATION_JSON)
-				.accept("application/json;charset=UTF-8")).andExpect(status().is(400)).andReturn();
+		performRevokeMyApproval(params, approvals, httpHeaders, 400);
 		signOut(204, accessToken, oauthAdminClientId);
 	}
 
 	@Test
-	public void testRevokeMyApprovalByAdmin() throws Exception {
+	public void testRevokeApprovalByAdmin() throws Exception {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 
 		loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
 		String resourceAdminToken = (String) loginResponse.get("access_token");
 
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		List<Approval> approvals = approvalStore.getApprovals("resource_admin", resourceAdminClientId).stream()
 				.filter(approval -> approval.getScope().equals("write")).collect(Collectors.toList());
 
 		Approval approval = approvals.get(0);
-		approval.setUserId("resource_admin");
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		MvcResult result = mvc.perform(post("/admin/user/revoke_approval").params(params).headers(httpHeaders)
-				.content(objectMapper.writeValueAsString(approval)).contentType(MediaType.APPLICATION_JSON)
-				.accept("application/json;charset=UTF-8")).andExpect(status().is(200)).andReturn();
+		MvcResult result = performRevokeUserApprovalByAdmin(params, approval, httpHeaders, 200);
 
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 
 		assertTrue(responseMap.get("msg").equals(Utils.approvalRevokedMsg));
 
@@ -1296,21 +1248,14 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		loginResponse = loginAs("resource_admin", resourceAdminClientId, password);
 		String resourceAdminToken = (String) loginResponse.get("access_token");
 
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		MvcResult result = mvc
-				.perform(post("/admin/user/sign_user_out/" + user.getId()).params(params).headers(httpHeaders)
-						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200)).andReturn();
+		MvcResult result = signUserOutByAdmin(user.getId(), params, httpHeaders, 200);
 
-		String responseString = result.getResponse().getContentAsString();
-		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
+		Map<String, Object> responseMap = getJsonMap(result);
 
 		assertTrue(responseMap.get("msg").equals(Utils.userSignedOutMsg));
 
@@ -1323,17 +1268,12 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
+				password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		mvc.perform(post("/admin/user/sign_user_out" + 1000L).params(params).headers(httpHeaders)
-				.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(404)).andReturn();
+		signUserOutByAdmin(1000L, params, httpHeaders, 404);
 
 		signOut(204, accessToken, oauthAdminClientId);
 	}
@@ -1342,50 +1282,37 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	public void testShowUserApprovalsReturns404WhenUserIdIsInvalid() throws Exception {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		fetchUserAppvoals(1000L, 404);
+		fetchUserApprovals(1000L, 404);
 		signOut(204, accessToken, oauthAdminClientId);
 	}
 
-	private MvcResult fetchUserAppvoals(long userId, int expectedStatus) throws Exception {
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "resource_admin");
-		params.add("password", password);
+	private MvcResult fetchUserApprovals(long userId, int expectedStatus) throws Exception {
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		MvcResult result = mvc
-				.perform(get("/admin/user/user_approvals/" + userId).params(params).headers(httpHeaders)
-						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(expectedStatus)).andReturn();
-		return result;
-	}
-
-	private MvcResult sendToggleEnableUserRequest(AppUser user, MultiValueMap<String, String> params,
-			HttpHeaders httpHeaders) throws Exception {
-		MvcResult result = mvc
-				.perform(put("/admin/user/toggle_enable_user/" + user.getId()).params(params).headers(httpHeaders)
-						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(200)).andReturn();
-		return result;
+		return mvc
+				.perform(get("/admin/user/user_approvals/" + userId)
+						.params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedStatus))
+				.andReturn();
 	}
 
 	private MvcResult sendGetUsersRequest(int page, int expectedStatus) throws Exception {
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", oauthAdminClientId);
-		params.add("username", "oauth_admin");
-		params.add("password", password);
+		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin", password);
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		MvcResult result = mvc
-				.perform(get("/admin/user/users/" + (page == 0 ? "" : page)).params(params).headers(httpHeaders)
-						.contentType(MediaType.APPLICATION_JSON).accept("application/json;charset=UTF-8"))
+		return mvc
+				.perform(get("/admin/user/users/" + (page == 0 ? "" : page))
+						.params(params).headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
 				.andExpect(status().is(expectedStatus))
-				.andExpect(content().contentType("application/json;charset=UTF-8")).andReturn();
-		return result;
+				.andExpect(content().contentType("application/json;charset=UTF-8"))
+				.andReturn();
 	}
 
 	private MvcResult sendSignUpRequest(AppUser newUser, int expectedStatus) throws Exception, JsonProcessingException {
@@ -1422,16 +1349,6 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		return result;
 	}
 
-	private void signOut(int exptectedStatus, String token, String clientId) throws Exception {
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("grant_type", "password");
-		params.add("client_id", clientId);
-		HttpHeaders httpHeaders = new HttpHeaders();
-		httpHeaders.add("Authorization", "Bearer " + token);
-		mvc.perform(delete("/sign_out").params(params).headers(httpHeaders).accept("application/json;charset=UTF-8"))
-				.andExpect(status().is(exptectedStatus));
-	}
-
 	private void sendRefreshTokenRequest(int expectedStatus, String refreshToken, String clientId) throws Exception {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("grant_type", "refresh_token");
@@ -1441,7 +1358,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 				.accept("application/json;charset=UTF-8")).andExpect(status().is(expectedStatus))
 				.andExpect(content().contentType("application/json;charset=UTF-8"));
 	}
-	
+
 	private UserPasswords createUserPasswords(String rawPass, String newPassword, String newPassConfirmation) {
 		UserPasswords newCredentials = new UserPasswords();
 		newCredentials.setOldPassword(rawPass);
@@ -1449,21 +1366,21 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		newCredentials.setNewPasswordConfirmation(newPassConfirmation);
 		return newCredentials;
 	}
-	
+
 	private Passwords createPasswords(String password, String passwordConfirmation) {
 		Passwords newCredentials = new Passwords();
 		newCredentials.setPassword(password);
 		newCredentials.setPasswordConfirmation(passwordConfirmation);
 		return newCredentials;
 	}
-	
+
 	private UserData createUserData(String newEmail, String newPhone) {
 		UserData resourceAdminUserData = new UserData();
 		resourceAdminUserData.setEmail(newEmail);
 		resourceAdminUserData.setPhone(newPhone);
 		return resourceAdminUserData;
 	}
-	
+
 	private MvcResult performChangePasswordRequestByAdmin(long userId, Passwords newCredentials,
 			MultiValueMap<String, String> params, HttpHeaders httpHeaders, int expectedStatus) throws Exception {
 		return mvc
@@ -1477,7 +1394,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
 	}
-	
+
 	private MvcResult performChangeUserDataByAdmin(long userId, UserData userData, MultiValueMap<String, String> params,
 			HttpHeaders httpHeaders, int expectedState) throws Exception {
 		return mvc
@@ -1491,7 +1408,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
 	}
-	
+
 	private MvcResult performCreateUserByAdmin(MultiValueMap<String, String> params, HttpHeaders httpHeaders, int expectedState)
 			throws Exception {
 		return mvc
@@ -1505,7 +1422,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
 	}
-	
+
 	private MvcResult performActivateAccount(long userId, String activationToken, int expectedState)
 			throws Exception {
 		return mvc
@@ -1518,7 +1435,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
 	}
-	
+
 	private MvcResult performShowMyAccount(MultiValueMap<String, String> params, HttpHeaders httpHeaders, int expectedState)
 			throws Exception {
 		return mvc
@@ -1531,7 +1448,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 				.andExpect(content().contentType("application/json;charset=UTF-8"))
 				.andReturn();
 	}
-	
+
 	private MvcResult performShowUserData(long userId, MultiValueMap<String, String> params, HttpHeaders httpHeaders, int expectedState)
 			throws Exception {
 		return mvc
@@ -1543,7 +1460,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 				.andExpect(status().is(expectedState))
 				.andReturn();
 	}
-	
+
 	private MvcResult performChangeUserAuthority(long userId, List<Long> authorityIds,
 			MultiValueMap<String, String> params, HttpHeaders httpHeaders, int expectedState) throws Exception {
 		return mvc
@@ -1551,6 +1468,101 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 						.params(params)
 						.headers(httpHeaders)
 						.content(objectMapper.writeValueAsString(authorityIds))
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedState))
+				.andReturn();
+	}
+
+	private MvcResult fetchAuthorities(MultiValueMap<String, String> params, HttpHeaders httpHeaders, int expectedState) throws Exception {
+		return mvc
+				.perform(get("/authority/list")
+						.params(params)
+						.headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedState))
+				.andReturn();
+	}
+
+	private MvcResult performDeleteMyAccount(MultiValueMap<String, String> params, HttpHeaders httpHeaders, int expectedState)
+			throws Exception {
+		return mvc
+				.perform(delete("/user/my_account/delete")
+						.params(params)
+						.headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedState))
+				.andReturn();
+	}
+
+	private MvcResult performDeleteAccountByAdmin(long userId, MultiValueMap<String, String> params,
+			HttpHeaders httpHeaders, int expectedState) throws Exception {
+		return mvc
+				.perform(delete("/admin/user/delete_account/" + userId)
+						.params(params)
+						.headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedState))
+				.andReturn();
+	}
+
+	private MvcResult performToggleEnableUser(long userId, MultiValueMap<String, String> params, HttpHeaders httpHeaders, int expectedState)
+			throws Exception {
+		return mvc.perform(put("/admin/user/toggle_enable_user/" + userId)
+				.params(params)
+				.headers(httpHeaders)
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedState))
+				.andReturn();
+	}
+
+	private MvcResult fetchMyApprovals(MultiValueMap<String, String> params, HttpHeaders httpHeaders, int expectedState) throws Exception {
+		return mvc
+				.perform(get("/user/my_approvals")
+						.params(params)
+						.headers(httpHeaders)
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedState))
+				.andReturn();
+	}
+
+	private MvcResult performRevokeMyApproval(MultiValueMap<String, String> params, List<Approval> approvals,
+			HttpHeaders httpHeaders, int expectedState) throws Exception {
+		return mvc
+				.perform(post("/user/revoke_my_approval")
+						.params(params)
+						.headers(httpHeaders)
+						.content(objectMapper.writeValueAsString(approvals.get(0)))
+						.contentType(MediaType.APPLICATION_JSON)
+						.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedState))
+				.andReturn();
+	}
+	
+	private MvcResult performRevokeUserApprovalByAdmin(MultiValueMap<String, String> params, Approval approval,
+			HttpHeaders httpHeaders, int expectedState) throws Exception, JsonProcessingException {
+		return mvc
+				.perform(post("/admin/user/revoke_approval")
+				.params(params)
+				.headers(httpHeaders)
+				.content(objectMapper.writeValueAsString(approval))
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(expectedState))
+				.andReturn();
+	}
+
+	private MvcResult signUserOutByAdmin(long userId, MultiValueMap<String, String> params, HttpHeaders httpHeaders, int expectedState)
+			throws Exception {
+		return mvc
+				.perform(post("/admin/user/sign_user_out/" + userId)
+						.params(params)
+						.headers(httpHeaders)
 						.contentType(MediaType.APPLICATION_JSON)
 						.accept("application/json;charset=UTF-8"))
 				.andExpect(status().is(expectedState))

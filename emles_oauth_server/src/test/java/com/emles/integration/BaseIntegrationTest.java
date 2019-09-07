@@ -1,6 +1,7 @@
 package com.emles.integration;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -86,6 +87,16 @@ public abstract class BaseIntegrationTest {
 
 	protected Map<String, Object> loginAs(String userName, String clientId, String pass) throws Exception {
 		return loginAs(userName, clientId, pass, 200);
+	}
+	
+	protected void signOut(int exptectedStatus, String token, String clientId) throws Exception {
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+		params.add("grant_type", "password");
+		params.add("client_id", clientId);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.add("Authorization", "Bearer " + token);
+		mvc.perform(delete("/sign_out").params(params).headers(httpHeaders).accept("application/json;charset=UTF-8"))
+				.andExpect(status().is(exptectedStatus));
 	}
 
 	@Autowired
