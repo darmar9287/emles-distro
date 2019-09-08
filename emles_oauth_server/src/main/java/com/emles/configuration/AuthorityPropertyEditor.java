@@ -11,7 +11,7 @@ import java.beans.PropertyEditor;
 
 /**
  * Class for formatting granted authority values.
- * @author dariusz
+ * @author Dariusz Kulig
  *
  */
 public class AuthorityPropertyEditor implements PropertyEditor {
