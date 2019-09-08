@@ -27,6 +27,11 @@ public class LogoutController {
 	@Autowired
 	private TokenStore tokenStore;
 
+	/**
+	 * Endpoint where all signed in users can revoke access and refresh tokens.
+	 * @param request - http servlet request instance containing headers with tokens.
+	 * @return Empty response when all tokens will be valid. Otherwise 400 error will be sent.
+	 */
 	@RequestMapping(method = RequestMethod.DELETE, value = "/sign_out")
 	public ResponseEntity<?> logout(HttpServletRequest request) {
 		String authorization = request.getHeader("Authorization");

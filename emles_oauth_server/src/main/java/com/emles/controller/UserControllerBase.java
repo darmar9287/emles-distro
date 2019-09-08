@@ -36,10 +36,21 @@ import com.emles.model.UserPasswords;
 import com.emles.service.UserService;
 import com.emles.utils.Utils;
 
+/**
+ * Abstract class extended by com.emles.controller.UsersController and com.emles.controller.admin.UsersController.
+ * @author Dariusz Kulig
+ *
+ */
 public abstract class UserControllerBase {
 
+	/**
+	 * PER_PAGE - parameter used for pagination.
+	 */
 	protected int PER_PAGE;
 
+	/**
+	 * userService - service used for maintaining AppUser instances.
+	 */
 	protected UserService userService;
 
 	/**
@@ -47,42 +58,82 @@ public abstract class UserControllerBase {
 	 */
 	protected TokenStore tokenStore;
 
+	/**
+	 * clientDetailsService - service used for maintaining ClientDetails instances.
+	 */
 	protected JdbcClientDetailsService clientDetailsService;
 
+	/**
+	 * approvalStore - store containing approvals for signed in users.
+	 */
 	protected ApprovalStore approvalStore;
 
+	/**
+	 * tokenServices - used for managing stored access and refresh tokens.
+	 */
 	protected AuthorizationServerTokenServices tokenServices;
 
+	/**
+	 * Setter for userService.
+	 * @param userService - instance of UserService implementation.
+	 */
 	@Autowired
 	public final void setUserService(UserService userService) {
 		this.userService = userService;
 	}
 
+	/**
+	 * Setter for tokenStore.
+	 * @param tokenStore - instance of TokenStore implementation.
+	 */
 	@Autowired
 	public final void setTokenStore(TokenStore tokenStore) {
 		this.tokenStore = tokenStore;
 	}
 
+	/**
+	 * Setter for clientDetailsService.
+	 * @param clientDetailsService - instance of JdbcClientDetailsService.
+	 */
 	@Autowired
 	public final void setClientDetailsService(JdbcClientDetailsService clientDetailsService) {
 		this.clientDetailsService = clientDetailsService;
 	}
 
+	/**
+	 * Setter for approvalStore.
+	 * @param approvalStore - ApprovalStore implementation instance.
+	 */
 	@Autowired
 	public final void setApprovalStore(ApprovalStore approvalStore) {
 		this.approvalStore = approvalStore;
 	}
 
+	/**
+	 * Setter for tokenServices.
+	 * @param tokenServices - instance of AuthorizationServerTokenServices implementation.
+	 */
 	@Resource(name = "oauthServerTokenServices")
 	public final void setTokenServices(AuthorizationServerTokenServices tokenServices) {
 		this.tokenServices = tokenServices;
 	}
 
+	/**
+	 * Setter for PER_PAGE.
+	 * @param perPage - number of elements per page.
+	 */
 	@Value("${config.pagination.per_page}")
 	public final void setPerPage(int perPage) {
 		this.PER_PAGE = perPage;
 	}
 
+	/**
+	 * Method used to create new user. It is used in sign up endpoint and create user by admin.
+	 * @param user - user data to be stored in db.
+	 * @param errors - validation errors.
+	 * @param isCreatedByAdmin - boolean flag checking if user is created by admin.
+	 * @return Success message when all data will be correct. Otherwise error messages will be returned.
+	 */
 	protected ResponseEntity<?> signUpNewUser(AppUser user, Errors errors, boolean isCreatedByAdmin) {
 		List<String> errorMessages = new ArrayList<>();
 		Map<String, Object> responseMap = new HashMap<>();
@@ -111,6 +162,10 @@ public abstract class UserControllerBase {
 		return ResponseEntity.ok().body(responseMap);
 	}
 
+	/**
+	 * Method used for access and refresh token revocation. Also all user approvals will be removed.
+	 * @param user - user instance who's going to be signed out from page.
+	 */
 	protected void signOutUserRemotely(AppUser user) {
 		clientDetailsService.listClientDetails().stream().forEach(clientDetails -> {
 			Collection<Approval> approvals = approvalStore.getApprovals(user.getName(), clientDetails.getClientId());
@@ -122,6 +177,11 @@ public abstract class UserControllerBase {
 		});
 	}
 
+	/**
+	 * Method used to remove access and refresh tokens sent in http headers.
+	 * @param request - http servlet instance object with http headers containing access token.
+	 * @return - oauth access token which should be revoked.
+	 */
 	protected OAuth2AccessToken removeAccessTokens(HttpServletRequest request) {
 		String authorization = request.getHeader("Authorization");
 		OAuth2AccessToken oauthAccessToken = null;
@@ -135,6 +195,14 @@ public abstract class UserControllerBase {
 		return oauthAccessToken;
 	}
 
+	/**
+	 * Method used to change user data.
+	 * @param userData - user data to be updated.
+	 * @param errors - validation errors.
+	 * @param user - user instance to which changes will be applied.
+	 * @return - JSON object containing error messages when data will be incorrect. Otherwise success message will be
+	 * sent.
+	 */
 	protected ResponseEntity<?> changeUserData(UserData userData, Errors errors, AppUser user) {
 		Map<String, Object> responseMap = new HashMap<>();
 		List<String> errorMessages = new ArrayList<>();
@@ -152,6 +220,13 @@ public abstract class UserControllerBase {
 		return ResponseEntity.ok().body(responseMap);
 	}
 
+	/**
+	 * Method used for validation user passwords.
+	 * @param passwords - object containing passwords to be validated.
+	 * @param errors - validation errors.
+	 * @param errorMessages - list of validation errors.
+	 * @param user - user instance who's password should be changed.
+	 */
 	protected void validateUserPasswords(UserPasswords passwords, Errors errors, List<String> errorMessages,
 			AppUser user) {
 		userService.checkIfOldPasswordMatches(user, passwords.getOldPassword(), errorMessages);
@@ -159,13 +234,26 @@ public abstract class UserControllerBase {
 				errorMessages);
 		userService.checkOtherValidationErrors(errors, errorMessages);
 	}
-	
+
+	/**
+	 * Method used for validation user passwords. Withoud check if password matches in hash stored in db.
+	 * @param passwords - object containing passwords to be validated.
+	 * @param errors - validation errors.
+	 * @param errorMessages - list of validation errors.
+	 */
 	protected void validateUserPasswords(Passwords passwords, Errors errors, List<String> errorMessages) {
 		userService.checkEqualityOfPasswords(passwords.getPassword(), passwords.getPasswordConfirmation(),
 				errorMessages);
 		userService.checkOtherValidationErrors(errors, errorMessages);
 	}
 
+	/**
+	 * Method used for requesting new access token.
+	 * @param request - http servlet request containing headers with access token.
+	 * @param signedIn - instance of user who's access token will be renewed.
+	 * @param accessToken - old access token instance.
+	 * @return - instance of new access token.
+	 */
 	protected OAuth2AccessToken requestNewAccessToken(HttpServletRequest request, AppUser signedIn,
 			OAuth2AccessToken accessToken) {
 		Map<String, String> authorizationParams = new HashMap<>();
@@ -189,6 +277,11 @@ public abstract class UserControllerBase {
 		return newToken;
 	}
 
+	/**
+	 * Method used for retrieving user approvals.
+	 * @param responseMap - map to which approval list will be stored.
+	 * @param user - user which approvals will be fetched.
+	 */
 	protected void fetchApprovalList(Map<String, Object> responseMap, AppUser user) {
 		List<Approval> approvals = clientDetailsService.listClientDetails().stream()
 				.map(clientDetails -> approvalStore.getApprovals(user.getName(), clientDetails.getClientId()))
@@ -196,6 +289,10 @@ public abstract class UserControllerBase {
 		responseMap.put("approvals", approvals);
 	}
 
+	/**
+	 * Method used for removing approval.
+	 * @param approval - approval to be revoked.
+	 */
 	protected void removeApproval(Approval approval) {
 		approvalStore.revokeApprovals(Arrays.asList(approval));
 		tokenStore.findTokensByClientIdAndUserName(approval.getClientId(), approval.getUserId())

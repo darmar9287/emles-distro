@@ -45,19 +45,17 @@ import javax.sql.DataSource;
 @EnableAuthorizationServer
 public class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
 
+	/**
+	 * redisHost - redis server host name.
+	 */
 	@Value("${spring.redis.host}")
 	private String redisHost;
 
+	/**
+	 * redisPort - redis server port number.
+	 */
 	@Value("${spring.redis.port}")
 	private int redisPort;
-
-	@Bean
-	public RedisConnectionFactory redisConnectionFactory() {
-		RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-		config.setHostName(redisHost);
-		config.setPort(redisPort);
-		return new JedisConnectionFactory(config);
-	}
 
 	/**
 	 * authenticationManager - Authentication manager needed for password grant type.
@@ -67,6 +65,18 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
 	@Autowired
 	private UserDetailsService userDetailsService;
+
+	/**
+	 * Redis token store bean.
+	 * @return redis connection factory instance.
+	 */
+	@Bean
+	public RedisConnectionFactory redisConnectionFactory() {
+		RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+		config.setHostName(redisHost);
+		config.setPort(redisPort);
+		return new JedisConnectionFactory(config);
+	}
 
 	/**
 	 * Oauth data source bean.
@@ -98,6 +108,10 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 		return store;
 	}
 
+	/**
+	 * TokenStoreApprovalHandler bean.
+	 * @return TokenStoreUserApprovalHandler instance.
+	 */
 	@Bean
 	public TokenStoreUserApprovalHandler userApprovalHandler() {
 		TokenStoreUserApprovalHandler handler = new TokenStoreUserApprovalHandler();
@@ -107,6 +121,10 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 		return handler;
 	}
 
+	/**
+	 * ProviderManager bean.
+	 * @return instance of PreAuthenticatedAuthenticationProvider.
+	 */
 	@Bean
 	public ProviderManager preAuthenticationProvider() {
 		PreAuthenticatedAuthenticationProvider provider = new PreAuthenticatedAuthenticationProvider();
@@ -114,6 +132,10 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 		return new ProviderManager(Arrays.asList(provider));
 	}
 
+	/**
+	 * AuthorizationServerTokenServices bean.
+	 * @return instance of DefaultTokenServices.
+	 */
 	@Bean
 	public AuthorizationServerTokenServices oauthServerTokenServices() {
 		DefaultTokenServices tokenServices = new DefaultTokenServices();

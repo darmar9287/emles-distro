@@ -11,21 +11,38 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Res
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import javax.sql.DataSource;
 
+/**
+ * Configuration class used for oauth_resource server.
+ * @author Dariusz Kulig
+ *
+ */
 @EnableResourceServer
 @Configuration
 public class OauthResourcesServerConfiguration extends ResourceServerConfigurerAdapter {
 
+	/**
+	 * redisHost - redis server host name.
+	 */
 	@Value("${spring.redis.host}")
 	private String redisHost;
 
+	/**
+	 * redisPort - redis server port number.
+	 */
 	@Value("${spring.redis.port}")
 	private int redisPort;
 
+	/**
+	 * tokenStore - used for caching access and refresh tokens.
+	 */
 	@Autowired
 	private TokenStore tokenStore;
 
+	/**
+	 * oauthDataSource - implementation of DataSource used in authorization server.
+	 */
 	@Autowired
-	public DataSource ouathDataSource;
+	public DataSource oauthDataSource;
 
 	@Override
 	public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
