@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.data.domain.Page;
@@ -30,10 +29,20 @@ import com.emles.model.UserData;
 import com.emles.model.projection.UserSimplified;
 import com.emles.utils.Utils;
 
+/**
+ * Controller class for maintaining users and their data by OAuth Admin.
+ * @author Dariusz Kulig
+ *
+ */
 @RestController
 @RequestMapping("/admin/user")
 public class UsersControllerAdmin extends UserControllerBase {
 
+	/**
+	 * Endpoint for signing out users.
+	 * @param userId - id of user to be signed out
+	 * @return JSON object containing message if user was found in DB. Otherwise it will return 404.
+	 */
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/sign_user_out/{userId}", method = RequestMethod.POST)
 	public ResponseEntity<?> signUserOut(@PathVariable("userId") Long userId) {
@@ -47,6 +56,11 @@ public class UsersControllerAdmin extends UserControllerBase {
 		return ResponseEntity.notFound().build();
 	}
 
+	/**
+	 * Endpoint for revoking approval.
+	 * @param approval - approval to be revoked.
+	 * @return JSON object containing message about successful revocation of approval.
+	 */
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/revoke_approval", method = RequestMethod.POST)
 	public ResponseEntity<?> revokeApproval(@RequestBody Approval approval) {
@@ -56,6 +70,12 @@ public class UsersControllerAdmin extends UserControllerBase {
 		return ResponseEntity.ok().body(responseMap);
 	}
 
+	/**
+	 * Endpoint which returns list of given user approvals.
+	 * @param userId - id of user who's approvals will be returned.
+	 * @return JSON object containing list of user approvals. If user will not be found in DB, then 404 error will be
+	 * returned.
+	 */
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/user_approvals/{userId}", method = RequestMethod.GET)
 	public ResponseEntity<?> showUserApprovals(@PathVariable("userId") Long userId) {
@@ -70,6 +90,12 @@ public class UsersControllerAdmin extends UserControllerBase {
 		return ResponseEntity.notFound().build();
 	}
 
+	/**
+	 * Endpoint for enabling/disabling given user.
+	 * @param userId - id if user who's account is going to be activated/deactivated.
+	 * @return JSON object containing message about successful account lock/unlock. If user will not be found in db,
+	 * then 404 error will be returned.
+	 */
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/toggle_enable_user/{userId}", method = RequestMethod.PUT)
 	public ResponseEntity<?> toggleEnableUser(@PathVariable("userId") Long userId) {
@@ -86,6 +112,12 @@ public class UsersControllerAdmin extends UserControllerBase {
 		return ResponseEntity.notFound().build();
 	}
 
+	/**
+	 * Endpoint for deleting user account.
+	 * @param userId - id of user who's account will be removed.
+	 * @return JSON object containing message about successful user removal. If user will not be found in db, then 404
+	 * error will be returned.
+	 */
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/delete_account/{userId}", method = RequestMethod.DELETE)
 	public ResponseEntity<?> deleteAccountByAdmin(@PathVariable("userId") Long userId) {
@@ -101,6 +133,13 @@ public class UsersControllerAdmin extends UserControllerBase {
 		return ResponseEntity.notFound().build();
 	}
 
+	/**
+	 * Endpoint for updating user roles.
+	 * @param userId - user id who's roles will be changed.
+	 * @param authorityIds - id of authorities which will be applied to the user.
+	 * @return JSON object containing message about successful user approval change. If user will not be found in db,
+	 * then 404 error will be returned.
+	 */
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/{userId}/update_roles", method = RequestMethod.PUT)
 	public ResponseEntity<?> updateUserRoles(@PathVariable(name = "userId", required = true) long userId,
@@ -115,6 +154,11 @@ public class UsersControllerAdmin extends UserControllerBase {
 		return ResponseEntity.notFound().build();
 	}
 
+	/**
+	 * Endpoint for listing specific user data.
+	 * @param userId - user id who's data will be returned.
+	 * @return JSON object containing user data. If user will not be found in db, the 404 error will be returned.
+	 */
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/show/{userId}", method = RequestMethod.GET)
 	public ResponseEntity<?> showUserForAdmin(@PathVariable(name = "userId", required = true) long userId) {
@@ -133,6 +177,11 @@ public class UsersControllerAdmin extends UserControllerBase {
 		return ResponseEntity.notFound().build();
 	}
 
+	/**
+	 * Endpoint for listing users registered in the db.
+	 * @param page - number of page. This parameter is optional (default value is 0).
+	 * @return Page object containing paged user list.
+	 */
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = { "/users/{page}", "/users" }, method = RequestMethod.GET)
 	public Page<UserSimplified> showUsers(@PathVariable(name = "page", required = false) Integer page) {
@@ -143,12 +192,27 @@ public class UsersControllerAdmin extends UserControllerBase {
 		return userService.listUsers(pageable);
 	}
 
+	/**
+	 * Endpoint for creating new user.
+	 * @param user - new user data.
+	 * @param errors - user model validation errors.
+	 * @return JSON object containing message when user will be created. If validation errors will be present, then they
+	 * will be returned to the client.
+	 */
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/create_user", method = RequestMethod.POST)
-	public ResponseEntity<?> createUser(HttpServletRequest request, @Valid @RequestBody AppUser user, Errors errors) {
+	public ResponseEntity<?> createUser(@Valid @RequestBody AppUser user, Errors errors) {
 		return signUpNewUser(user, errors, true);
 	}
 
+	/**
+	 * Endpoint for updating user data.
+	 * @param userId - id of user who's account data will be updated.
+	 * @param userData - user data to be updated.
+	 * @param errors - user data validation errors.
+	 * @return - JSON object containing message about successful user data update. If validation errors will be present,
+	 * then they will be returned to the client.
+	 */
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/update_account/{userId}", method = RequestMethod.PUT)
 	public ResponseEntity<?> updateAccountDataByAdmin(@PathVariable("userId") Long userId,
@@ -163,6 +227,14 @@ public class UsersControllerAdmin extends UserControllerBase {
 		return ResponseEntity.unprocessableEntity().body(responseMap);
 	}
 
+	/**
+	 * Endpoint for changing user passwords.
+	 * @param userId - id of user who's password will be changed.
+	 * @param passwords - object with new passwords for the user.
+	 * @param errors - passwords validation errors.
+	 * @return JSON object containing message about successful passwords update. If user will not be found in db, then
+	 * 404 error will be returned. If password validation fails, then validation errors will be returned.
+	 */
 	@PreAuthorize("hasAuthority('ROLE_OAUTH_ADMIN')")
 	@RequestMapping(value = "/change_password/{userId}", method = RequestMethod.POST)
 	public ResponseEntity<?> changePasswordByAdmin(@PathVariable("userId") Long userId,

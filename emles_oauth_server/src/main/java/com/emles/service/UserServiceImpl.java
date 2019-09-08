@@ -28,21 +28,41 @@ import com.emles.repository.AuthorityRepository;
 import com.emles.repository.PasswordTokenRepository;
 import com.emles.utils.Utils;
 
+/**
+ * Implementation of UserService interface.
+ * @author Dariusz Kulig
+ *
+ */
 @Service
 public class UserServiceImpl implements UserService {
 
+	/**
+	 * userRepository - repository which manages AppUser instances in db.
+	 */
 	@Autowired
 	private AppUserRepository userRepository;
 
+	/**
+	 * passwordEncoder - encoder for user password.
+	 */
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
+	/**
+	 * passwordTokenRepository - repository which manages PasswordResetToken instances in db.
+	 */
 	@Autowired
 	private PasswordTokenRepository passwordTokenRepository;
 
+	/**
+	 * authoritRepository - repository which manages Authority instances in db.
+	 */
 	@Autowired
 	private AuthorityRepository authorityRepository;
 
+	/**
+	 * accountActivationTokenRepository - repository which manages AccountActivationToken instances in db.
+	 */
 	@Autowired
 	private AccountActivationTokenRepository accountActivationTokenRepository;
 
