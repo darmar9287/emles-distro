@@ -16,7 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 /**
  * Configuration for web security.
  * 
- * @author dariusz
+ * @author Dariusz Kulig
  *
  */
 @EnableWebSecurity
