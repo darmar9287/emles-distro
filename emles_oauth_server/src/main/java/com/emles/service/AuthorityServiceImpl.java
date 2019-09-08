@@ -10,12 +10,20 @@ import org.springframework.transaction.annotation.Transactional;
 import com.emles.model.Authority;
 import com.emles.repository.AuthorityRepository;
 
+/**
+ * Implementation of AuthorityService interface.
+ * @author Dariusz Kulig
+ *
+ */
 @Service
 public class AuthorityServiceImpl implements AuthorityService {
 
+	/**
+	 * authorityRepository - repository which manages Authority instances in db.
+	 */
 	@Autowired
 	private AuthorityRepository authorityRepository;
-	
+
 	@Transactional
 	public List<Authority> listAuthorities() {
 		List<Authority> authorities = new ArrayList<>();
