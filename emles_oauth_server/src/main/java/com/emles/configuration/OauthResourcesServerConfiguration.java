@@ -53,7 +53,8 @@ public class OauthResourcesServerConfiguration extends ResourceServerConfigurerA
 	public void configure(HttpSecurity http) throws Exception {
 		http.authorizeRequests()
 				.antMatchers("/user/forgot_password", "/user/change_forgotten_password", "/user/sign_up",
-						"/user/validate_user_account")
+						"/user/validate_user_account", "/v2/api-docs", "/swagger-ui.html**", "/swagger-resources/**",
+						"/webjars/**")
 				.permitAll().antMatchers(HttpMethod.GET, "/**").access("#oauth2.hasScope('read')")
 				.antMatchers(HttpMethod.POST, "/**").access("#oauth2.hasScope('write')")
 				.antMatchers(HttpMethod.PATCH, "/**").access("#oauth2.hasScope('write')")
