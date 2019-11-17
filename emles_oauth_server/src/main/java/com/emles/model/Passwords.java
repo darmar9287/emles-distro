@@ -40,7 +40,7 @@ public class Passwords {
     @JsonView(Views.Internal.class)
     @JsonIgnore
     private String passwordConfirmation;
-
+    
     /**
 	 * Getter for password.
 	 * @return - password string value.

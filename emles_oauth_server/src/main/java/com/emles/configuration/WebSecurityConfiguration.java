@@ -59,7 +59,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 	@Override
 	protected final void configure(HttpSecurity http) throws Exception {
 		http.authorizeRequests().antMatchers("/user/forgot_password", "/user/change_forgotten_password").permitAll()
-				.anyRequest().authenticated().and().userDetailsService(userDetailsServiceBean());
+				.anyRequest().authenticated().and().userDetailsService(userDetailsServiceBean()).cors();
 	}
 
 	@Override

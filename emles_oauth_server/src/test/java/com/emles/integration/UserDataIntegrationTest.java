@@ -758,7 +758,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		Map<String, Object> responseMap = getJsonMap(result);
 		assertTrue(responseMap.get("msg").equals(Utils.userCreatedSuccessMsg));
-
+		
 		AppUser found = userRepository.findByName(newUser.getName());
 		List<String> authorityNames = found.getAuthorities().stream().map(Authority::getAuthority)
 				.collect(Collectors.toList());

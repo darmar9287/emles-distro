@@ -205,6 +205,8 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public AppUser createUser(AppUser user) {
 		user.setEnabled(true);
+		String encryptedPassword = passwordEncoder.encode(user.getPassword());
+		user.setPassword(encryptedPassword);
 		for (Authority ur : user.getAuthorities()) {
 			authorityRepository.save(ur);
 		}
@@ -300,6 +302,6 @@ public class UserServiceImpl implements UserService {
 	}
 
 	private boolean checkPasswordsAreEqual(String password, String passwordConfirmation) {
-		return password.equals(passwordConfirmation);
+		return password != null && password.equals(passwordConfirmation);
 	}
 }
