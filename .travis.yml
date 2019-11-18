@@ -8,6 +8,6 @@ services:
 before_script: pip install docker-compose
 
 script:
-  - docker-compose run authserver sh -c "mvn clean test"
-  - docker-compose run distribution_res_server sh -c "mvn clean test"
+  - docker-compose run authserver sh -c "./wait-for-it.sh postgres:5432 -t 60 -- mvn clean test"
+  - docker-compose run distribution_res_server sh -c "./wait-for-it.sh authserver:5432 -t 60 -- mvn clean test"
 

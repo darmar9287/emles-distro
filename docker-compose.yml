@@ -25,6 +25,7 @@ services:
     depends_on:
       - postgres
       - redis
+    command: ["./wait-for-it.sh", "postgres:5432", "-t", "60", "--", "mvn", "spring-boot:run"]
   distribution_res_server:
     build: ./emles_distribution_resource_server
     volumes:
@@ -45,3 +46,4 @@ services:
       - postgres
       - redis
       - authserver
+    command: ["./wait-for-it.sh", "postgres:5432", "-t", "60", "--", "mvn", "spring-boot:run"]

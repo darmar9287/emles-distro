@@ -197,7 +197,6 @@ public class UsersController extends UserControllerBase {
 	@RequestMapping(value = "/change_forgotten_password", method = RequestMethod.POST)
 	public ResponseEntity<?> changeForgottenPassword(@Valid @RequestBody Passwords newPassword, Errors errors,
 			@RequestParam("id") long id, @RequestParam("token") String token) {
-
 		String result = userService.validatePasswordResetToken(id, token);
 		Optional<AppUser> userOpt = userService.findById(id);
 		Map<String, Object> responseMap = new HashMap<>();

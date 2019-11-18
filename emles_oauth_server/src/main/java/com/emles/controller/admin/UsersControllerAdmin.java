@@ -167,7 +167,7 @@ public class UsersControllerAdmin extends UserControllerBase {
 			Map<String, Object> responseMap = new HashMap<>();
 			AppUser user = userOpt.get();
 			responseMap.put("name", user.getName());
-			responseMap.put("authorities", user.getAuthorities().stream().map(Authority::getAuthority).toArray());
+			responseMap.put("authorities", user.getAuthorities());
 			responseMap.put("email", user.getEmail());
 			responseMap.put("phone", user.getPhone());
 			responseMap.put("id", user.getId());

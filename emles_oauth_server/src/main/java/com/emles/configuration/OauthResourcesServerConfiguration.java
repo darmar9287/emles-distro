@@ -60,14 +60,7 @@ public class OauthResourcesServerConfiguration extends ResourceServerConfigurerA
 				.antMatchers(HttpMethod.PATCH, "/**").access("#oauth2.hasScope('write')")
 				.antMatchers(HttpMethod.PUT, "/**").access("#oauth2.hasScope('write')")
 				.antMatchers(HttpMethod.DELETE, "/**").access("#oauth2.hasScope('write')")
-				.and().headers().addHeaderWriter((request, response) -> {
-					response.addHeader("Access-Control-Allow-Origin", "*");
-					if (request.getMethod().equals("OPTIONS")) {
-						response.setHeader("Access-Control-Allow-Methods",
-								request.getHeader("Access-Control-Request-Method"));
-						response.setHeader("Access-Control-Allow-Headers",
-								request.getHeader("Access-Control-Request-Headers"));
-					}
-				});
+				.antMatchers(HttpMethod.OPTIONS, "/oauth/token").permitAll()
+				.and().cors();
 	}
 }

@@ -25,4 +25,10 @@ public interface UserSimplified {
 	 * @return user data instance object.
 	 */
 	UserData getUserData();
+	
+	/**
+	 * Getter for isEnabled field.
+	 * @return boolean value if user is enabled/disabled.
+	 */
+	boolean isEnabled();
 }

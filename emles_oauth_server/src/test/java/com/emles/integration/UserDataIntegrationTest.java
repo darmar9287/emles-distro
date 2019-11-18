@@ -76,6 +76,9 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	@Autowired
 	private ApprovalStore approvalStore;
 
+	@Autowired
+	private DBPopulator dbPopulator;
+	
 	private AppUser newUser;
 
 	private String newUserPassword = "h4$h3dPa$$";
@@ -89,6 +92,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		newUser.setPasswordConfirmation(newUserPassword);
 		newUser.setPhone("600600666");
 		jsonParser = JsonParserFactory.getJsonParser();
+		dbPopulator.populate();
 	}
 
 	@Test
@@ -356,7 +360,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 	@Test
 	public void testChangePasswordByAdminReturns422WhenUserDoesNotExist() throws Exception {
-		long userId = 2000L;
+		long userId = Long.MAX_VALUE;
 		String newPass = "abcd@@@##AA1112";
 
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
@@ -575,7 +579,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 	@Test
 	public void testChangeUserDataByAdminReturns422WhenUserDoesNotExist() throws Exception {
-		long userId = 2000L;
+		long userId = Long.MAX_VALUE;
 		String newEmail = "test@test.com";
 		String newPhone = "123456789";
 
@@ -758,7 +762,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		Map<String, Object> responseMap = getJsonMap(result);
 		assertTrue(responseMap.get("msg").equals(Utils.userCreatedSuccessMsg));
-
+		
 		AppUser found = userRepository.findByName(newUser.getName());
 		List<String> authorityNames = found.getAuthorities().stream().map(Authority::getAuthority)
 				.collect(Collectors.toList());
@@ -837,7 +841,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 			assertTrue(responseMap.get("name") != null);
 			assertTrue(responseMap.get("userData") != null);
 			assertTrue(responseMap.get("passwords") == null);
-			assertTrue(responseMap.get("enabled") == null);
+			assertTrue(responseMap.get("enabled") != null);
 			assertTrue(responseMap.get("authorities") == null);
 			assertTrue(responseMap.get("password") == null);
 			assertTrue(responseMap.get("lastPasswordResetDate") == null);
@@ -876,7 +880,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 		assertNotNull(responseMap.get("name"));
 		assertNotNull(responseMap.get("userData"));
 		assertNull(responseMap.get("passwords"));
-		assertNull(responseMap.get("enabled"));
+		assertNotNull(responseMap.get("enabled"));
 		assertNull(responseMap.get("authorities"));
 		assertNull(responseMap.get("password"));
 		assertNull(responseMap.get("last_password_reset_date"));
@@ -911,7 +915,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 	@Test
 	public void testShowUserForAdminReturns404WhenUserIdIsInvalid() throws Exception {
-		long userId = 1000L;
+		long userId = Long.MAX_VALUE;
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 
@@ -964,7 +968,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 	@Test
 	public void testUpdateUserAuthorityReturns404WhenUserIdIsNotFound() throws Exception {
-		long invalidUserId = 1000L;
+		long invalidUserId = Long.MAX_VALUE;
 		List<Long> authorityIds = Arrays.asList(1L, 2L);
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
@@ -1056,7 +1060,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 	@Test
 	public void testDeleteAccountByAdminReturns404WheUserIdIsInvalid() throws Exception {
-		long invalidId = 1000L;
+		long invalidId = Long.MAX_VALUE;
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
@@ -1071,7 +1075,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 	@Test
 	public void testToggleEnableUserReturns404WheUserIdIsInvalid() throws Exception {
-		long invalidId = 1000L;
+		long invalidId = Long.MAX_VALUE;
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
 		MultiValueMap<String, String> params = prepareOauthParams("password", oauthAdminClientId, "oauth_admin",
@@ -1273,7 +1277,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.add("Authorization", "Bearer " + accessToken);
-		signUserOutByAdmin(1000L, params, httpHeaders, 404);
+		signUserOutByAdmin(Long.MAX_VALUE, params, httpHeaders, 404);
 
 		signOut(204, accessToken, oauthAdminClientId);
 	}
@@ -1282,7 +1286,7 @@ public class UserDataIntegrationTest extends BaseIntegrationTest {
 	public void testShowUserApprovalsReturns404WhenUserIdIsInvalid() throws Exception {
 		Map<String, Object> loginResponse = loginAs("oauth_admin", oauthAdminClientId, password);
 		accessToken = (String) loginResponse.get("access_token");
-		fetchUserApprovals(1000L, 404);
+		fetchUserApprovals(Long.MAX_VALUE, 404);
 		signOut(204, accessToken, oauthAdminClientId);
 	}
 
