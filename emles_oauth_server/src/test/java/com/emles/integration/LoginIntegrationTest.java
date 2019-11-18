@@ -63,6 +63,9 @@ public class LoginIntegrationTest {
 	@Autowired
 	private TokenStore tokenStore;
 	
+	@Autowired
+	private DBPopulator dbPopulator;
+	
 	private String productAdminClientId = "integration_test_product_admin";
 	
 	private String oauthAdminClientId = "integration_test_oauth_admin";
@@ -76,6 +79,7 @@ public class LoginIntegrationTest {
 	@Before
 	public void setUp() {
 		jsonParser = JsonParserFactory.getJsonParser();
+		dbPopulator.populate();
 	}
 	
 	@Test

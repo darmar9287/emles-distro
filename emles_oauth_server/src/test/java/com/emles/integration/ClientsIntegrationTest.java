@@ -70,6 +70,9 @@ public class ClientsIntegrationTest {
 	@Autowired
 	private TokenStore tokenStore;
 	
+	@Autowired
+	private DBPopulator dbPopulator;
+	
 	private JsonParser jsonParser;
 	
 	private String productAdminClientId = "integration_test_product_admin";
@@ -104,6 +107,7 @@ public class ClientsIntegrationTest {
 	@Before
 	public void setUp() {
 		jsonParser = JsonParserFactory.getJsonParser();
+		dbPopulator.populate();
 	}
 	
 	@After

@@ -60,6 +60,9 @@ public class ForgotPasswordIntegrationTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+	
+	@Autowired
+	private DBPopulator dbPopulator;
 
 	private JsonParser jsonParser;
 
@@ -70,6 +73,7 @@ public class ForgotPasswordIntegrationTest {
 	@Before
 	public void setUp() {
 		jsonParser = JsonParserFactory.getJsonParser();
+		dbPopulator.populate();
 	}
 
 	@Test
@@ -155,7 +159,7 @@ public class ForgotPasswordIntegrationTest {
 		passwords.setPasswordConfirmation("abcd@@@##AA11");
 		userService.createPasswordResetTokenForUser(user, token);
 
-		MvcResult result = changeForgottenPasswordRequest(token, 1000L, passwords, 422);
+		MvcResult result = changeForgottenPasswordRequest(token, Long.MAX_VALUE, passwords, 422);
 
 		String responseString = result.getResponse().getContentAsString();
 		Map<String, Object> responseMap = jsonParser.parseMap(responseString);
