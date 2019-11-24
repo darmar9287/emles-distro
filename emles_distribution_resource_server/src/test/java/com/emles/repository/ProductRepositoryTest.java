@@ -6,22 +6,23 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import javax.transaction.Transactional;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.emles.model.Product;
 
 @RunWith(SpringRunner.class)
-@Transactional
-@SpringBootTest
-@PropertySource("application-test.properties")
+@DataJpaTest
+@AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
+@TestPropertySource("classpath:application-repository-test.properties")
 public class ProductRepositoryTest {
 	@Autowired
     private ProductRepository productRepository;
@@ -30,8 +31,22 @@ public class ProductRepositoryTest {
 	
 	@Before
 	public void setupProduct() {
-		expectedProduct = new Product("SOS 1", 10L, new BigDecimal(9.99));
-		expectedProduct.setProductId(2L);
+		expectedProduct = new Product("SOS 11", 10L, new BigDecimal(9.99));
+		expectedProduct.setProductId(3L);
+		
+		Product product = new Product();
+	    product.setProductName("SOS 12");
+	    product.setProductPrice(new BigDecimal("9.99"));
+	    product.setProductQuantityLeft(10L);
+	    
+	    productRepository.save(product);
+	    
+	    product = new Product();
+	    product.setProductName("SOS 11");
+	    product.setProductPrice(new BigDecimal("9.99"));
+	    product.setProductQuantityLeft(20L);
+	    
+	    productRepository.save(product);
 	}
 	
     @Test
@@ -43,16 +58,9 @@ public class ProductRepositoryTest {
     }
     
     @Test
-    public void testFindByIdShouldReturnSecondProduct() {
-    	Long secondProductId = 2L;    	
-    	Optional<Product> product = productRepository.findById(secondProductId);  
-    	assertTrue("Product name is different than expected product name", product.get().getProductName().equals(expectedProduct.getProductName()));    	
-    }
-    
-    @Test
     public void testSaveProductShouldReturnSavedProduct() {    	
 		productRepository.save(expectedProduct);
-		Long searchedProductId = 2L;
+		Long searchedProductId = 3L;
 		Product found = productRepository.getOne(searchedProductId);
 		assertTrue(found.getProductName().equals(expectedProduct.getProductName()));
     }
