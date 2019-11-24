@@ -11,4 +11,5 @@ public interface ProductService {
 	
 	public List<Product> showProducts();
 
+	public void updateProduct(Product product);
 }

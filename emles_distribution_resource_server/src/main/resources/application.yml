@@ -18,7 +18,12 @@ spring:
         hibernate:
           temp:
             use_jdbc_metadata_defaults: false
+#logging:
+#  level:
+#    org:
+ #     apache:
+ #       http: DEBUG
 
 # --- server
 server:
-  port: 8083
+  port: ${SERVER_PORT}

@@ -2,6 +2,9 @@ package com.emles.model;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import com.emles.utils.Utils;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -16,16 +19,21 @@ public class Product implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "product_id")
 	private Long productId;
 
+	@Pattern(regexp = Utils.productNameRegex, message = Utils.invalidProductNameMsg)
 	@Column(name = "product_name", nullable = false)
+	@NotNull
 	private String productName;
 
+	@Min(value = 0L, message = Utils.invalidProductQuantityMsg)
 	@Column(name = "product_quantity_left", nullable = false)
-	@Min(value = 0L)
+	@NotNull
 	private Long productQuantityLeft;
 
 	@Column(name = "product_price", nullable = false)
+	@NotNull
 	private BigDecimal productPrice;
 
 	public Product(String productName, Long productQuantityLeft, BigDecimal productPrice) {
@@ -38,15 +46,15 @@ public class Product implements Serializable {
 	public Product() {
 	}
 
-	public Long getId() {
+	public Long getProductId() {
 		return productId;
 	}
 
-	public void setId(Long id) {
+	public void setProductId(Long id) {
 		this.productId = id;
 	}
 
-	public String getName() {
+	public String getProductName() {
 		return productName;
 	}
 

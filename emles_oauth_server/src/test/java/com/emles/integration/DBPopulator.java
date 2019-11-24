@@ -53,7 +53,9 @@ public class DBPopulator {
 		userRepository.deleteAll();
 		userRepository.flush();
 		clientsDetailsService.listClientDetails().forEach(clientDetails -> {
-			clientsDetailsService.removeClientDetails(clientDetails.getClientId());
+			if (!clientDetails.getClientId().equals("curl_client")) {
+				clientsDetailsService.removeClientDetails(clientDetails.getClientId());
+			}
 		});
 		createAuthorities();
 		createUsers();

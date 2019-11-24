@@ -1,5 +1,6 @@
 package com.emles.integration;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -29,6 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.NoSuchClientException;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
@@ -133,7 +135,8 @@ public class ClientsIntegrationTest {
 				.andReturn();
 		String responseString = result.getResponse().getContentAsString();
 		List<Object> responseMap = jsonParser.parseList(responseString);
-		assertTrue(responseMap.size() == 3);
+		List<ClientDetails> clientDetails = jdbcClientDetailsService.listClientDetails();
+		assertEquals(responseMap.size(), clientDetails.size());
 	}
 	
 	@SuppressWarnings("unchecked")

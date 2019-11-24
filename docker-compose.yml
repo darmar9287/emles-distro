@@ -19,9 +19,10 @@ services:
       - PGPORT=5432
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - SERVER_PORT=8081
     ports:
       - '8000:8081'
-     # - '5005:5005'
+     # - '5005:5005' uncomment to use debugger
     depends_on:
       - postgres
       - redis
@@ -39,11 +40,55 @@ services:
       - PGPORT=5432
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - SERVER_PORT=8083
     ports:
       - '8001:8083'
-     # - '5005:5005'
+     # - '5005:5005' uncomment to use debugger
     depends_on:
       - postgres
       - redis
       - authserver
+    command: ["./wait-for-it.sh", "postgres:5432", "-t", "60", "--", "mvn", "spring-boot:run"]
+  authservertest:
+    build: ./emles_oauth_server
+    volumes:
+      - ./emles_oauth_server:/app
+    environment:
+      - PGUSER=postgres
+      - PGHOST=postgres
+      - PGDATABASE=emles_oauth2_test
+      - PG_TEST_DATABASE=emles_oauth2_test
+      - PGPASSWORD=postgres_password
+      - PGPORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SERVER_PORT=8084
+    ports:
+      - '8002:8084'
+     # - '5005:5005' uncomment to use debugger
+    depends_on:
+      - postgres
+      - redis
+    command: ["./wait-for-it.sh", "postgres:5432", "-t", "60", "--", "mvn", "spring-boot:run"]
+  distribution_res_server_test:
+    build: ./emles_distribution_resource_server
+    volumes:
+      - ./emles_distribution_resource_server:/app
+    environment:
+      - PGUSER=postgres
+      - PGHOST=postgres
+      - PGDATABASE=emles_oauth2_test
+      - PG_TEST_DATABASE=emles_oauth2_test
+      - PGPASSWORD=postgres_password
+      - PGPORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SERVER_PORT=8085
+    ports:
+      - '8003:8085'
+     # - '5005:5005' uncomment to use debugger
+    depends_on:
+      - postgres
+      - redis
+      - authservertest
     command: ["./wait-for-it.sh", "postgres:5432", "-t", "60", "--", "mvn", "spring-boot:run"]
