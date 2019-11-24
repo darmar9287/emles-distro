@@ -31,7 +31,7 @@ public class ProductRepositoryTest {
 	@Before
 	public void setupProduct() {
 		expectedProduct = new Product("SOS 1", 10L, new BigDecimal(9.99));
-		expectedProduct.setId(2L);
+		expectedProduct.setProductId(2L);
 	}
 	
     @Test
@@ -46,7 +46,7 @@ public class ProductRepositoryTest {
     public void testFindByIdShouldReturnSecondProduct() {
     	Long secondProductId = 2L;    	
     	Optional<Product> product = productRepository.findById(secondProductId);  
-    	assertTrue("Product name is different than expected product name", product.get().getName().equals(expectedProduct.getName()));    	
+    	assertTrue("Product name is different than expected product name", product.get().getProductName().equals(expectedProduct.getProductName()));    	
     }
     
     @Test
@@ -54,7 +54,7 @@ public class ProductRepositoryTest {
 		productRepository.save(expectedProduct);
 		Long searchedProductId = 2L;
 		Product found = productRepository.getOne(searchedProductId);
-		assertTrue(found.getName().equals(expectedProduct.getName()));
+		assertTrue(found.getProductName().equals(expectedProduct.getProductName()));
     }
 	
 }

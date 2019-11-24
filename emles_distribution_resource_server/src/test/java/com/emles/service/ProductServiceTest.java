@@ -32,9 +32,9 @@ public class ProductServiceTest {
 	@Before
 	public void setupProducts() {
 		Product firstProduct = new Product("SOS", 10L, new BigDecimal(9.99));
-		firstProduct.setId(1L);
+		firstProduct.setProductId(1L);
 		Product secondProduct = new Product("SOS 1", 10L, new BigDecimal(9.99));
-		secondProduct.setId(2L);
+		secondProduct.setProductId(2L);
 		products.add(firstProduct);
 		products.add(secondProduct);		
 	}
@@ -45,7 +45,7 @@ public class ProductServiceTest {
 		when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 		Optional<Product> found = productService.findProductById(1L);
 		Mockito.verify(productRepository).findById(1L);
-		assertTrue(product.getName().equals(found.get().getName()));
+		assertTrue(product.getProductName().equals(found.get().getProductName()));
 	}
 
 }

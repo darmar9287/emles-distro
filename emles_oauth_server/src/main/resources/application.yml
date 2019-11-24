@@ -21,7 +21,7 @@ spring:
 
 # --- server
 server:
-  port: 8081
+  port: ${SERVER_PORT}
 config:
   pagination:
     per_page: 10

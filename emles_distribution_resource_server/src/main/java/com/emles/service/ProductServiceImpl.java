@@ -29,4 +29,10 @@ public class ProductServiceImpl implements ProductService {
 	public Optional<Product> findProductById(long productId) {
 		return productRepository.findById(productId);
 	}
+	
+	@Override
+	@Transactional
+	public void updateProduct(Product product) {
+		productRepository.save(product);
+	}
 }
