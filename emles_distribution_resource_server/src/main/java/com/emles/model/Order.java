@@ -36,8 +36,8 @@ public class Order implements Serializable {
 	@Column(name = "order_date", nullable = false)
 	private Date orderDate;
 
-	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-	@JoinColumn(name = "customer_id", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+	@JoinColumn(name = "customer_id", nullable = true)
 	private Customer customerId;
 
 	@OneToMany(mappedBy = "orderDetailId")

@@ -10,6 +10,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
+import com.emles.utils.Utils;
 
 @Entity
 @Table(name = "customer")
@@ -22,15 +27,22 @@ public class Customer implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "customer_id")
 	private Long customerId;
 
 	@Column(name = "customer_name", nullable = false)
+	@NotNull
+	@Pattern(regexp = Utils.customerNameRegex, message = Utils.invalidCustomerNameRegex)
 	private String customerName;
 
-	@Column(name = "customer_phone", nullable = false)
+	@Column(name = "customer_phone", nullable = false, unique = true)
+	@NotNull
+	@Pattern(regexp = Utils.phoneNumberRegex, message = Utils.invalidPhoneNumberMsg)
 	private String customerPhone;
 
-	@Column(name = "customer_address", nullable = false)
+	@Column(name = "customer_address", nullable = false, unique = true)
+	@NotNull
+	@Email
 	private String customerAddress;
 
 	@OneToMany(mappedBy = "orderId")

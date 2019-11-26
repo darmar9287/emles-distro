@@ -60,6 +60,14 @@ public final class Utils {
 	
 	public static final String invalidProductNameMsg = "Product name is invalid";
 	
+	public static final String phoneNumberRegex = "^(\\d{3}\\-?){2}\\d{3}$";
+	
+	public static final String invalidPhoneNumberMsg = "Invalid phone number.";
+
+	public static final String customerNameRegex = "^[A-Za-z]{2,100}\\s?[A-Za-z\\-]{0,100}$";
+
+	public static final String invalidCustomerNameRegex = "Customer name is invalid.";
+	
     /**
      * Method used to encode user password.
      * @param password - password to be encoded.
