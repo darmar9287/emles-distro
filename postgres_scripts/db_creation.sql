@@ -295,7 +295,7 @@ DROP TABLE IF EXISTS orders CASCADE;
 CREATE TABLE orders (
     order_id serial NOT NULL,
     order_date date NOT NULL,
-    customer_id integer NOT NULL,
+    customer_id integer NULL,
     app_user_id integer NOT NULL
 );
 
