@@ -28,7 +28,7 @@ public class ProductController {
 	}
 
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ROLE_PRODUCT_ADMIN')")
+	@PreAuthorize("hasAuthority('ROLE_PRODUCT_ADMIN')")
 	public ResponseEntity<?> getProduct(@PathVariable("id") Long id) {
 		Optional<Product> productOpt = productService.findProductById(id);
 		if (productOpt.isPresent()) {
@@ -38,7 +38,7 @@ public class ProductController {
 	}
 
 	@GetMapping("/products")
-	@PreAuthorize("hasRole('ROLE_PRODUCT_ADMIN')")
+	@PreAuthorize("hasAuthority('ROLE_PRODUCT_ADMIN')")
 	public List<Product> findAll() {
 		return productService.showProducts();
 	}
