@@ -106,16 +106,16 @@ ALTER TABLE account_activation_token
 DROP TABLE IF EXISTS customer CASCADE;
 CREATE TABLE customer (
     customer_id serial NOT NULL,
-    customer_name text[] NOT NULL,
-    customer_phone text[],
-    customer_address text[]
+    customer_name text NOT NULL,
+    customer_phone text NOT NULL,
+    customer_address text NOT NULL
 );
 
 DROP TABLE IF EXISTS orders CASCADE;
 CREATE TABLE orders (
     order_id serial NOT NULL,
     order_date date NOT NULL,
-    customer_id integer NOT NULL,
+    customer_id integer NULL,
     app_user_id integer NOT NULL
 );
 
@@ -286,9 +286,9 @@ ALTER TABLE account_activation_token
 DROP TABLE IF EXISTS customer CASCADE;
 CREATE TABLE customer (
     customer_id serial NOT NULL,
-    customer_name text[] NOT NULL,
-    customer_phone text[],
-    customer_address text[]
+    customer_name text NOT NULL,
+    customer_phone text NOT NULL,
+    customer_address text NOT NULL
 );
 
 DROP TABLE IF EXISTS orders CASCADE;

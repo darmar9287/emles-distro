@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,7 +27,6 @@ import com.emles.EmlesDistributionResourceServerApplication;
 import com.emles.model.Product;
 import com.emles.repository.ProductRepository;
 import com.emles.utils.Utils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;

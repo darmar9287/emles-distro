@@ -11,7 +11,7 @@ import com.emles.model.Customer;
 
 public interface CustomerService {
 
-	public void saveCustomer(Customer customer, Errors errors, List<String> errorMessages);
+	public Customer saveCustomer(Customer customer, Errors errors, List<String> errorMessages);
 	
 	public Optional<Customer> findCustomerById(long customerId);
 	

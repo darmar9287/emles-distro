@@ -22,16 +22,16 @@ public class CustomerServiceImpl implements CustomerService {
 	
 	@Override
 	@Transactional
-	public void saveCustomer(Customer customer, Errors errors, List<String> errorMessages) {
+	public Customer saveCustomer(Customer customer, Errors errors, List<String> errorMessages) {
 		checkOtherValidationErrors(errors, errorMessages);
 		if (!errorMessages.isEmpty()) {
-			return;
+			return null;
 		}
 		validateUniqueValuesForCustomer(customer, errorMessages);
 		if (!errorMessages.isEmpty()) {
-			return;
+			return null;
 		}
-		customerRepository.save(customer);
+		return customerRepository.save(customer);
 	}
 
 	@Override
