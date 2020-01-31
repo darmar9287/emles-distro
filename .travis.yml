@@ -11,3 +11,13 @@ script:
   - docker-compose run authservertest sh -c "./wait-for-it.sh postgres:5432 -t 60 -- mvn clean test"
   - docker-compose run distribution_res_server_test sh -c "./wait-for-it.sh authservertest:5432 -t 60 -- mvn clean test"
 
+after_success:
+  - docker build -t darmar9287/emles-distro-distribution-resource-server ./emles_distribution_resource_server
+  - docker build -t darmar9287/emles-distro-oauth-server ./emles_oauth_server
+  - docker build -t darmar9287/emles-distro-nginx ./nginx
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push darmar9287/emles-distro-distribution-resource-server
+  - docker push darmar9287/emles-distro-oauth-server
+  - docker push darmar9287/emles-distro-nginx

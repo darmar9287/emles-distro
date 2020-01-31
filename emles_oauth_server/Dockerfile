@@ -8,4 +8,4 @@ RUN mvn dependency:go-offline -B
 
 COPY . .
 
-#CMD ["mvn", "spring-boot:run"]
+CMD ["mvn", "spring-boot:run"]

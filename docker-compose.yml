@@ -6,8 +6,17 @@ services:
       - ./postgres_scripts/db_creation.sql:/docker-entrypoint-initdb.d/1-init.sql
   redis:
     image: 'redis:latest'
+  nginx:
+    restart: always
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./nginx
+    ports:
+        - '3050:80'
   authserver:
-    build: ./emles_oauth_server
+    build: 
+      dockerfile: Dockerfile.dev
+      context: ./emles_oauth_server
     volumes:
       - ./emles_oauth_server:/app
     environment:
@@ -28,7 +37,9 @@ services:
       - redis
     command: ["./wait-for-it.sh", "postgres:5432", "-t", "60", "--", "mvn", "spring-boot:run"]
   distribution_res_server:
-    build: ./emles_distribution_resource_server
+    build: 
+      dockerfile: Dockerfile.dev
+      context: ./emles_distribution_resource_server
     volumes:
       - ./emles_distribution_resource_server:/app
     environment:
@@ -50,7 +61,9 @@ services:
       - authserver
     command: ["./wait-for-it.sh", "postgres:5432", "-t", "60", "--", "mvn", "spring-boot:run"]
   authservertest:
-    build: ./emles_oauth_server
+    build: 
+      dockerfile: Dockerfile.dev
+      context: ./emles_oauth_server
     volumes:
       - ./emles_oauth_server:/app
     environment:
@@ -71,7 +84,9 @@ services:
       - redis
     command: ["./wait-for-it.sh", "postgres:5432", "-t", "60", "--", "mvn", "spring-boot:run"]
   distribution_res_server_test:
-    build: ./emles_distribution_resource_server
+    build: 
+      dockerfile: Dockerfile.dev
+      context: ./emles_distribution_resource_server
     volumes:
       - ./emles_distribution_resource_server:/app
     environment:
