@@ -8,4 +8,4 @@ RUN mvn clean package
 
 COPY . .
 
-CMD ["java", "-jar", "emles_oauth_server-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "target/emles_oauth_server-0.0.1-SNAPSHOT.jar"]
