@@ -4,7 +4,7 @@
         {
             "name": "distributionresserver",
             "image": "darmar9287/emles-distro-distribution-resource-server",
-            "hostname": "distribution_res_server",
+            "hostname": "distributionresserver",
             "essential": false,
             "memory": 128
         },
