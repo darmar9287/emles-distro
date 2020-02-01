@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY ./pom.xml ./
 
-RUN mvn clean package
+RUN mvn dependency:go-offline -B
 
 COPY . .
 
-CMD ["java", "-jar", "target/emles_oauth_server-0.0.1-SNAPSHOT.jar"]
+CMD ["mvn", "spring-boot:run"]
