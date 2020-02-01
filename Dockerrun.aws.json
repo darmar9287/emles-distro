@@ -1,0 +1,35 @@
+{
+    "AWSEBDockerrunVersion": 2,
+    "containerDefinitions": [
+        {
+            "name": "distribution_res_server",
+            "image": "darmar9287/emles-distro-distribution-resource-server",
+            "hostname": "distribution_res_server",
+            "essential": false,
+            "memory": 128
+        },
+        {
+            "name": "authserver",
+            "image": "darmar9287/emles-distro-oauth-server",
+            "hostname": "authserver",
+            "essential": false,
+            "memory": 128
+        },
+        {
+            "name": "nginx",
+            "image": "darmar9287/emles-distro-nginx",
+            "hostname": "nginx",
+            "essential": true,
+            "memory": 128,
+            "portMappings": [
+                {
+                    "hostPort": 80,
+                    "containerPort": 80
+                }
+            ],
+            "links": [
+                "authserver", "distribution_res_server"
+            ]
+        }
+    ]
+}
