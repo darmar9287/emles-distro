@@ -2,7 +2,7 @@
     "AWSEBDockerrunVersion": 2,
     "containerDefinitions": [
         {
-            "name": "distribution_res_server",
+            "name": "distributionresserver",
             "image": "darmar9287/emles-distro-distribution-resource-server",
             "hostname": "distribution_res_server",
             "essential": false,
@@ -28,7 +28,7 @@
                 }
             ],
             "links": [
-                "authserver", "distribution_res_server"
+                "authserver", "distributionresserver"
             ]
         }
     ]
