@@ -12,6 +12,8 @@ script:
   - docker-compose run distribution_res_server_test sh -c "./wait-for-it.sh authservertest:5432 -t 60 -- mvn clean test"
 
 after_success:
+  - docker-compose run authserver sh -c "mvn install -DskipTests -Djacoco.skip=true"
+  - docker-compose run distribution_res_server sh -c "mvn install -DskipTests -Djacoco.skip=true"
   - docker build -t darmar9287/emles-distro-distribution-resource-server ./emles_distribution_resource_server
   - docker build -t darmar9287/emles-distro-oauth-server ./emles_oauth_server
   - docker build -t darmar9287/emles-distro-nginx ./nginx
@@ -22,15 +24,15 @@ after_success:
   - docker push darmar9287/emles-distro-oauth-server
   - docker push darmar9287/emles-distro-nginx
 
-#deploy:
-#  edge: true
- # provider: elasticbeanstalk
-  #region: eu-west-1
-  #app: emles-distro
-  #env: EmlesDistro-env
-  #bucket_name: elasticbeanstalk-eu-west-1-246484776318
-  #bucket_path: emles-distro
-  #on:
-   # branch: master
-  #access_key_id: $AWS_ACCESS_KEY
-  #secret_access_key: $AWS_SECRET_KEY
+deploy:
+  edge: true
+  provider: elasticbeanstalk
+  region: eu-west-1
+  app: emles-distro
+  env: EmlesDistro-env
+  bucket_name: elasticbeanstalk-eu-west-1-246484776318
+  bucket_path: emles-distro
+  on:
+   branch: master
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY

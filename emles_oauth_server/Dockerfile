@@ -1,11 +1,7 @@
-FROM maven:3.6.1-jdk-8
+FROM openjdk:8u131-jdk-alpine
 
-WORKDIR /app
+WORKDIR /usr/local/bin/
 
-COPY ./pom.xml ./
+COPY ./target/emles_oauth_server-0.0.1-SNAPSHOT.jar webapp.jar
 
-RUN mvn dependency:go-offline -B
-
-COPY . .
-
-CMD ["mvn", "spring-boot:run"]
+CMD ["java", "-jar","webapp.jar"]
