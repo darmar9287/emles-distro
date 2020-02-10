@@ -6,14 +6,14 @@
             "image": "darmar9287/emles-distro-distribution-resource-server",
             "hostname": "distributionresserver",
             "essential": false,
-            "memory": 256
+            "memory": 384
         },
         {
             "name": "authserver",
             "image": "darmar9287/emles-distro-oauth-server",
             "hostname": "authserver",
             "essential": false,
-            "memory": 256
+            "memory": 384
         },
         {
             "name": "nginx",
