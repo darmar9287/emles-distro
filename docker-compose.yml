@@ -28,7 +28,7 @@ services:
       - PGPORT=5432
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - SERVER_PORT=8081
+      - AUTH_SERVER_PORT=8081
     ports:
       - '8000:8081'
      # - '5005:5005' uncomment to use debugger
@@ -75,7 +75,7 @@ services:
       - PGPORT=5432
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - SERVER_PORT=8084
+      - AUTH_SERVER_PORT=8084
     ports:
       - '8002:8084'
      # - '5005:5005' uncomment to use debugger

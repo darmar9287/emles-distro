@@ -21,7 +21,7 @@ spring:
 
 # --- server
 server:
-  port: ${SERVER_PORT}
+  port: ${AUTH_SERVER_PORT}
 config:
   pagination:
     per_page: 10
